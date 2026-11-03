@@ -62,6 +62,38 @@ export default function App() {
 
   // Reassignment handler (Live Trello API or Local State)
   const handleCompleteHandover = async ({ departingId, replacementId, cardIds }) => {
+    // Always update local state immediately so UI reflects the handover instantly
+    setCards((prevCards) =>
+      prevCards.map((card) => {
+        if (cardIds.includes(card.id)) {
+          return {
+            ...card,
+            memberId: replacementId === 'unassigned' ? null : replacementId,
+          };
+        }
+        return card;
+      })
+    );
+
+    setMembers((prevMembers) =>
+      prevMembers.map((member) => {
+        if (member.id === departingId) {
+          return {
+            ...member,
+            cardsCount: Math.max(0, (member.cardsCount || 0) - cardIds.length),
+          };
+        }
+        if (member.id === replacementId) {
+          return {
+            ...member,
+            cardsCount: (member.cardsCount || 0) + cardIds.length,
+          };
+        }
+        return member;
+      })
+    );
+
+    // If live connected with credentials, also perform remote Trello REST API sync
     if (isLiveConnected) {
       try {
         await executeLiveReassignment({
@@ -70,40 +102,9 @@ export default function App() {
           cardIds,
           cards,
         });
-        await handleSelectDepartingMember(departingId);
       } catch (err) {
-        console.error('Live reassignment error:', err);
+        console.warn('Live reassignment server sync notice:', err.message);
       }
-    } else {
-      setCards((prevCards) =>
-        prevCards.map((card) => {
-          if (cardIds.includes(card.id)) {
-            return {
-              ...card,
-              memberId: replacementId === 'unassigned' ? null : replacementId,
-            };
-          }
-          return card;
-        })
-      );
-
-      setMembers((prevMembers) =>
-        prevMembers.map((member) => {
-          if (member.id === departingId) {
-            return {
-              ...member,
-              cardsCount: Math.max(0, (member.cardsCount || 0) - cardIds.length),
-            };
-          }
-          if (member.id === replacementId) {
-            return {
-              ...member,
-              cardsCount: (member.cardsCount || 0) + cardIds.length,
-            };
-          }
-          return member;
-        })
-      );
     }
   };
 

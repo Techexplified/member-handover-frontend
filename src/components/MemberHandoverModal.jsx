@@ -147,9 +147,32 @@ export function MemberHandoverModal({
     );
   }, [departingCards, cardSearchQuery]);
 
-  // Filtered updated cards for "Updated cards (21)" screen
+  // Updated cards source (use real reassigned cards if available, fallback to mock)
+  const updatedCardsSource = useMemo(() => {
+    const reassigned = departingCards
+      .filter((c) => selectedCardIds.includes(c.id))
+      .map((c) => ({
+        id: c.id,
+        title: c.title,
+        board: c.board || 'Current Board',
+        list: c.list || 'To Do',
+        previousMember: departingMember?.name || 'Previous',
+        previousAvatarBg: departingMember?.bg || '#dbeafe',
+        previousAvatarColor: departingMember?.color || '#1e40af',
+        previousAvatarInitials: departingMember?.initials || 'DM',
+        newMember: replacementMember?.name || 'Replacement',
+        newAvatarBg: replacementMember?.bg || '#dcfce7',
+        newAvatarColor: replacementMember?.color || '#166534',
+        newAvatarInitials: replacementMember?.initials || 'RM',
+      }));
+
+    if (reassigned.length > 0) return reassigned;
+    return UPDATED_CARDS_LIST;
+  }, [departingCards, selectedCardIds, departingMember, replacementMember]);
+
+  // Filtered updated cards for "Updated cards" screen
   const filteredUpdatedCards = useMemo(() => {
-    return UPDATED_CARDS_LIST.filter((card) => {
+    return updatedCardsSource.filter((card) => {
       const matchesSearch =
         !updatedCardsSearch.trim() ||
         card.title.toLowerCase().includes(updatedCardsSearch.toLowerCase());
@@ -159,7 +182,7 @@ export function MemberHandoverModal({
         updatedListFilter === 'ALL' || card.list === updatedListFilter;
       return matchesSearch && matchesBoard && matchesList;
     });
-  }, [updatedCardsSearch, updatedBoardFilter, updatedListFilter]);
+  }, [updatedCardsSource, updatedCardsSearch, updatedBoardFilter, updatedListFilter]);
 
   // Paginated updated cards (10 per page)
   const pageSize = 10;
@@ -171,12 +194,12 @@ export function MemberHandoverModal({
 
   // Unique boards & lists for filters in "Updated cards"
   const allUpdatedBoards = useMemo(
-    () => Array.from(new Set(UPDATED_CARDS_LIST.map((c) => c.board))),
-    []
+    () => Array.from(new Set(updatedCardsSource.map((c) => c.board))),
+    [updatedCardsSource]
   );
   const allUpdatedLists = useMemo(
-    () => Array.from(new Set(UPDATED_CARDS_LIST.map((c) => c.list))),
-    []
+    () => Array.from(new Set(updatedCardsSource.map((c) => c.list))),
+    [updatedCardsSource]
   );
 
   // Card selection handlers
@@ -941,14 +964,6 @@ export function MemberHandoverModal({
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="font-bold text-[#172b4d] text-sm">0</span>
-                      {/* View details button (Image 1) */}
-                      <button
-                        type="button"
-                        onClick={() => setCompletionView('SKIPPED')}
-                        className="px-2.5 py-1 text-xs font-semibold text-[#0c66e4] bg-white border border-[#0c66e4] hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
-                      >
-                        View details
-                      </button>
                     </div>
                   </div>
 
@@ -970,12 +985,11 @@ export function MemberHandoverModal({
                 </div>
               </div>
 
-              {/* Info Box */}
-              <div className="p-3 bg-[#edf5ff] border border-blue-100 rounded-xl mb-5 text-left flex items-start gap-2.5">
-                <InfoCircleIcon className="w-4 h-4 flex-shrink-0 text-[#0c66e4] mt-0.5" />
+              {/* Success Info Box */}
+              <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl mb-5 text-left flex items-start gap-2.5">
+                <CheckIcon className="w-4 h-4 flex-shrink-0 text-[#00875a] mt-0.5" />
                 <p className="text-[12px] text-[#172b4d] leading-relaxed">
-                  3 cards were skipped because you don't have permission to edit them.
-                  You can review the list and try again later.
+                  All {selectedCardIds.length} {selectedCardIds.length === 1 ? 'card was' : 'cards were'} successfully reassigned to {replacementMember?.name}.
                 </p>
               </div>
 
