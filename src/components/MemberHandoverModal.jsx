@@ -78,10 +78,15 @@ export function MemberHandoverModal({
 
   // Cards assigned to departing member
   const departingCards = useMemo(() => {
-    if (simulateEmptyState || departingMember?.cardsCount === 0) {
+    if (simulateEmptyState) {
       return [];
     }
-    return cards.filter((c) => c.memberId === selectedDepartingId);
+    const matching = cards.filter((c) => c.memberId === selectedDepartingId);
+    if (matching.length > 0) return matching;
+    if (departingMember?.cardsCount === 0) {
+      return [];
+    }
+    return matching;
   }, [cards, selectedDepartingId, simulateEmptyState, departingMember]);
 
   // Synchronize selected cards with departingCards

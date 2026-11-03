@@ -79,6 +79,20 @@ export async function fetchLiveWorkspaces() {
   }));
 }
 
+// Helper to check if a card is assigned to a member (handles both Trello SDK 'members' and REST 'idMembers')
+function isCardAssignedToMember(card, memberId) {
+  if (!card || !memberId) return false;
+  if (Array.isArray(card.members)) {
+    if (card.members.some((m) => (typeof m === 'string' ? m === memberId : m?.id === memberId))) {
+      return true;
+    }
+  }
+  if (Array.isArray(card.idMembers)) {
+    if (card.idMembers.includes(memberId)) return true;
+  }
+  return false;
+}
+
 // Fetch Live Members of a Workspace
 export async function fetchLiveWorkspaceMembers(targetWorkspaceId = null) {
   // If running inside Trello Power-Up iframe, automatically fetch real board/workspace members
@@ -87,7 +101,7 @@ export async function fetchLiveWorkspaceMembers(targetWorkspaceId = null) {
       const t = window.TrelloPowerUp.iframe();
       const [board, cards] = await Promise.all([
         t.board('id', 'name', 'members'),
-        t.cards('id', 'idMembers').catch(() => []),
+        t.cards('id', 'members', 'idMembers').catch(() => []),
       ]);
       if (board && board.members && board.members.length > 0) {
         return board.members.map((m) => {
@@ -99,9 +113,7 @@ export async function fetchLiveWorkspaceMembers(targetWorkspaceId = null) {
             { bg: '#f3e8ff', color: '#6b21a8' },
           ];
           const colorIdx = Math.abs((m.id || '').charCodeAt(0)) % colors.length;
-          const assignedCards = (cards || []).filter(
-            (c) => c.idMembers && c.idMembers.includes(m.id)
-          );
+          const assignedCards = (cards || []).filter((c) => isCardAssignedToMember(c, m.id));
           return {
             id: m.id,
             name: m.fullName || m.username,
@@ -182,7 +194,7 @@ export async function fetchLiveMemberCards(memberId) {
       const t = window.TrelloPowerUp.iframe();
       const [board, boardCards, boardLists] = await Promise.all([
         t.board('id', 'name'),
-        t.cards('id', 'name', 'idMembers', 'idList', 'due'),
+        t.cards('id', 'name', 'members', 'idMembers', 'idList', 'due'),
         t.lists('id', 'name').catch(() => []),
       ]);
 
@@ -191,8 +203,8 @@ export async function fetchLiveMemberCards(memberId) {
         return acc;
       }, {});
 
-      const memberCards = (boardCards || []).filter(
-        (c) => c.idMembers && c.idMembers.includes(memberId)
+      const memberCards = (boardCards || []).filter((c) =>
+        isCardAssignedToMember(c, memberId)
       );
 
       return memberCards.map((c) => ({
