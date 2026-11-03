@@ -79,17 +79,33 @@ export async function fetchLiveWorkspaces() {
   }));
 }
 
-// Helper to check if a card is assigned to a member (handles both Trello SDK 'members' and REST 'idMembers')
+// Helper to check if a card is assigned to a member (handles SDK 'members', 'idMembers', username & ID)
 function isCardAssignedToMember(card, memberId) {
   if (!card || !memberId) return false;
+  const target = String(memberId).toLowerCase();
+
   if (Array.isArray(card.members)) {
-    if (card.members.some((m) => (typeof m === 'string' ? m === memberId : m?.id === memberId))) {
+    if (
+      card.members.some((m) => {
+        if (!m) return false;
+        if (typeof m === 'string') return m.toLowerCase() === target;
+        return (
+          (m.id && String(m.id).toLowerCase() === target) ||
+          (m.username && String(m.username).toLowerCase() === target) ||
+          (m.fullName && String(m.fullName).toLowerCase() === target)
+        );
+      })
+    ) {
       return true;
     }
   }
+
   if (Array.isArray(card.idMembers)) {
-    if (card.idMembers.includes(memberId)) return true;
+    if (card.idMembers.some((id) => String(id).toLowerCase() === target)) {
+      return true;
+    }
   }
+
   return false;
 }
 
@@ -101,7 +117,7 @@ export async function fetchLiveWorkspaceMembers(targetWorkspaceId = null) {
       const t = window.TrelloPowerUp.iframe();
       const [board, cards] = await Promise.all([
         t.board('id', 'name', 'members'),
-        t.cards('id', 'members', 'idMembers').catch(() => []),
+        t.cards('all').catch(() => []),
       ]);
       if (board && board.members && board.members.length > 0) {
         return board.members.map((m) => {
@@ -113,7 +129,9 @@ export async function fetchLiveWorkspaceMembers(targetWorkspaceId = null) {
             { bg: '#f3e8ff', color: '#6b21a8' },
           ];
           const colorIdx = Math.abs((m.id || '').charCodeAt(0)) % colors.length;
-          const assignedCards = (cards || []).filter((c) => isCardAssignedToMember(c, m.id));
+          const assignedCards = (cards || []).filter(
+            (c) => isCardAssignedToMember(c, m.id) || isCardAssignedToMember(c, m.username)
+          );
           return {
             id: m.id,
             name: m.fullName || m.username,
@@ -194,7 +212,7 @@ export async function fetchLiveMemberCards(memberId) {
       const t = window.TrelloPowerUp.iframe();
       const [board, boardCards, boardLists] = await Promise.all([
         t.board('id', 'name'),
-        t.cards('id', 'name', 'members', 'idMembers', 'idList', 'due'),
+        t.cards('all').catch(() => []),
         t.lists('id', 'name').catch(() => []),
       ]);
 

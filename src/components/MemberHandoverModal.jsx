@@ -50,7 +50,11 @@ export function MemberHandoverModal({
         if (onSelectDepartingMember) onSelectDepartingMember(members[0].id);
       }
       if (!members.some((m) => m.id === selectedReplacementId) && members.length > 1) {
-        setSelectedReplacementId(members[1].id);
+        const other = members.find((m) => m.id !== selectedDepartingId) || members[1];
+        setSelectedReplacementId(other.id);
+      } else if (selectedReplacementId === selectedDepartingId) {
+        const other = members.find((m) => m.id !== selectedDepartingId);
+        if (other) setSelectedReplacementId(other.id);
       }
     }
   }, [members, selectedDepartingId, selectedReplacementId, onSelectDepartingMember]);
