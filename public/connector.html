@@ -5,9 +5,51 @@
     <title>Member Handover Connector</title>
     <!-- Trello Power-Up Client Library -->
     <script src="https://p.trellocdn.com/power-up.min.js"></script>
-    <!-- Connector Registration Script -->
-    <script src="./connector.js"></script>
   </head>
   <body>
+    <script>
+      /* global window, TrelloPowerUp */
+      if (typeof window !== 'undefined' && window.TrelloPowerUp) {
+        var baseUrl = window.location.origin;
+
+        window.TrelloPowerUp.initialize({
+          // Adds the "Member Handover" button to the board header in Trello
+          'board-buttons': function (t) {
+            return [
+              {
+                icon: {
+                  dark: baseUrl + '/favicon.svg',
+                  light: baseUrl + '/favicon.svg',
+                },
+                text: 'Member Handover',
+                callback: function (t) {
+                  return t.modal({
+                    title: 'Member Handover',
+                    url: baseUrl + '/',
+                    accentColor: '#0c66e4',
+                    height: 640,
+                    fullscreen: false,
+                  });
+                },
+              },
+            ];
+          },
+
+          'authorization-status': function (t) {
+            return t.get('member', 'private', 'token').then(function (token) {
+              return { authorized: Boolean(token) };
+            });
+          },
+
+          'show-authorization': function (t) {
+            return t.popup({
+              title: 'Authorize Member Handover',
+              url: baseUrl + '/?auth=true',
+              height: 300,
+            });
+          },
+        });
+      }
+    </script>
   </body>
 </html>
