@@ -610,15 +610,6 @@ export function MemberHandoverModal({
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => {
-                      setSimulateEmptyState(false);
-                      setUseSampleCards(true);
-                    }}
-                    className="mt-4 text-xs text-[#0c66e4] hover:underline cursor-pointer"
-                  >
-                    (Click to reload sample 24 cards)
-                  </button>
                 </div>
               ) : (
                 /* Review table */
@@ -1283,15 +1274,7 @@ export function MemberHandoverModal({
             <>
               {/* Left button: Back or Cancel */}
               <div>
-                {currentStep === 1 ? (
-                  <button
-                    type="button"
-                    onClick={() => setSimulateEmptyState(!simulateEmptyState)}
-                    className="text-[11px] text-slate-400 hover:text-slate-600 cursor-pointer"
-                  >
-                    {simulateEmptyState ? '✓ Empty State Demo' : 'Test Empty State'}
-                  </button>
-                ) : currentStep === 4 ? (
+                {currentStep === 1 ? null : currentStep === 4 ? (
                   <button
                     type="button"
                     disabled={isProcessing}
