@@ -813,7 +813,7 @@ export function MemberHandoverModal({
                       <CardIcon className="w-4 h-4 text-[#626f86]" />
                       <span>Total cards</span>
                     </div>
-                    <span className="font-bold text-[#172b4d]">24</span>
+                    <span className="font-bold text-[#172b4d]">{selectedCardIds.length}</span>
                   </div>
                   <div className="h-px bg-slate-200/70" />
                   <div className="flex items-center justify-between py-1">
@@ -821,7 +821,7 @@ export function MemberHandoverModal({
                       <BoardsIcon className="w-4 h-4 text-[#626f86]" />
                       <span>Boards</span>
                     </div>
-                    <span className="font-bold text-[#172b4d]">6</span>
+                    <span className="font-bold text-[#172b4d]">{Math.max(1, uniqueBoards.length)}</span>
                   </div>
                   <div className="h-px bg-slate-200/70" />
                   <div className="flex items-center justify-between py-1">
@@ -829,7 +829,7 @@ export function MemberHandoverModal({
                       <ListsIcon className="w-4 h-4 text-[#626f86]" />
                       <span>Lists</span>
                     </div>
-                    <span className="font-bold text-[#172b4d]">8</span>
+                    <span className="font-bold text-[#172b4d]">{Math.max(1, uniqueLists.length)}</span>
                   </div>
                 </div>
               </div>
@@ -872,7 +872,7 @@ export function MemberHandoverModal({
                 Handover complete
               </h3>
               <p className="text-[13.5px] text-[#44546f] max-w-sm mx-auto mb-4 leading-normal">
-                21 cards were successfully reassigned from {departingMember?.name} to{' '}
+                {selectedCardIds.length} {selectedCardIds.length === 1 ? 'card was' : 'cards were'} successfully reassigned from {departingMember?.name} to{' '}
                 {replacementMember?.name}.
               </p>
 
@@ -923,7 +923,7 @@ export function MemberHandoverModal({
                         </div>
                       </div>
                     </div>
-                    <span className="font-bold text-[#172b4d] text-sm">21</span>
+                    <span className="font-bold text-[#172b4d] text-sm">{selectedCardIds.length}</span>
                   </div>
 
                   <div className="h-px bg-slate-200/70" />
@@ -940,7 +940,7 @@ export function MemberHandoverModal({
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="font-bold text-[#172b4d] text-sm">3</span>
+                      <span className="font-bold text-[#172b4d] text-sm">0</span>
                       {/* View details button (Image 1) */}
                       <button
                         type="button"
