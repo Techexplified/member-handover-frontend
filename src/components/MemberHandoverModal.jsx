@@ -1004,7 +1004,7 @@ export function MemberHandoverModal({
                 </button>
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={handleCloseDialog}
                   className="text-[13.5px] font-semibold text-[#0c66e4] hover:underline cursor-pointer"
                 >
                   Close
@@ -1350,7 +1350,7 @@ export function MemberHandoverModal({
                   </button>
                   <button
                     type="button"
-                    onClick={onClose}
+                    onClick={handleCloseDialog}
                     className="px-5 py-2 text-[13.5px] font-semibold text-white bg-[#0c66e4] hover:bg-[#0055cc] rounded-md transition-colors cursor-pointer shadow-sm"
                   >
                     Done
@@ -1368,7 +1368,7 @@ export function MemberHandoverModal({
                   </button>
                   <button
                     type="button"
-                    onClick={onClose}
+                    onClick={handleCloseDialog}
                     className="px-6 py-2 text-[14px] font-semibold text-white bg-[#0c66e4] hover:bg-[#0055cc] rounded-md transition-colors cursor-pointer shadow-sm"
                   >
                     Close
@@ -1386,7 +1386,7 @@ export function MemberHandoverModal({
                   </button>
                   <button
                     type="button"
-                    onClick={onClose}
+                    onClick={handleCloseDialog}
                     className="px-6 py-2 text-[14px] font-semibold text-white bg-[#0c66e4] hover:bg-[#0055cc] rounded-md transition-colors cursor-pointer shadow-sm"
                   >
                     Close

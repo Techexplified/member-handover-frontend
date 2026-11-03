@@ -108,11 +108,23 @@ export default function App() {
     }
   };
 
+  const handleCloseModal = () => {
+    if (typeof window !== 'undefined' && window.TrelloPowerUp) {
+      try {
+        const t = window.TrelloPowerUp.iframe();
+        t.closeModal();
+      } catch (err) {
+        console.warn('closeModal notice:', err);
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen w-full bg-[#f4f5f7] flex items-center justify-center p-2 sm:p-4 font-sans">
       <MemberHandoverModal
         isOpen={true}
         isInline={true}
+        onClose={handleCloseModal}
         members={members}
         cards={cards}
         onCompleteHandover={handleCompleteHandover}
