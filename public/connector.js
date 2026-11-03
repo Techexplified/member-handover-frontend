@@ -2,20 +2,22 @@
 /* global window, TrelloPowerUp */
 
 if (typeof window !== 'undefined' && window.TrelloPowerUp) {
+  var baseUrl = window.location.origin;
+
   window.TrelloPowerUp.initialize({
     // Adds the "Member Handover" button to the board header in Trello
     'board-buttons': function (t) {
       return [
         {
           icon: {
-            dark: 'https://p.trellocdn.com/icons/light/member.svg',
-            light: 'https://p.trellocdn.com/icons/dark/member.svg',
+            dark: baseUrl + '/favicon.svg',
+            light: baseUrl + '/favicon.svg',
           },
           text: 'Member Handover',
           callback: function (t) {
             return t.modal({
               title: 'Member Handover',
-              url: './index.html',
+              url: baseUrl + '/',
               accentColor: '#0c66e4',
               height: 640,
               fullscreen: false,
@@ -35,10 +37,11 @@ if (typeof window !== 'undefined' && window.TrelloPowerUp) {
     'show-authorization': function (t) {
       return t.popup({
         title: 'Authorize Member Handover',
-        url: './index.html?auth=true',
+        url: baseUrl + '/?auth=true',
         height: 300,
       });
     },
   });
 }
+
 
