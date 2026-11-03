@@ -19,7 +19,7 @@ import {
   CardOutlineIcon,
 } from './Icons';
 import { MemberAvatar } from './MemberAvatar';
-import { UPDATED_CARDS_LIST, SKIPPED_CARDS_LIST } from '../data/mockData';
+import { UPDATED_CARDS_LIST, SKIPPED_CARDS_LIST, INITIAL_CARDS } from '../data/mockData';
 
 export function MemberHandoverModal({
   isOpen = true,
@@ -33,12 +33,14 @@ export function MemberHandoverModal({
 }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const [replacementSearchQuery, setReplacementSearchQuery] = useState('');
   const [selectedDepartingId, setSelectedDepartingId] = useState(members[0]?.id || 'alex');
   const [selectedReplacementId, setSelectedReplacementId] = useState(members[1]?.id || 'priya');
   const [selectedCardIds, setSelectedCardIds] = useState([]);
   const [cardSearchQuery, setCardSearchQuery] = useState('');
   const [viewByBoardMode, setViewByBoardMode] = useState(false);
   const [simulateEmptyState, setSimulateEmptyState] = useState(false);
+  const [useSampleCards, setUseSampleCards] = useState(false);
 
   // Sync selection if members list changes (e.g., live Trello members loaded)
   React.useEffect(() => {
@@ -81,13 +83,16 @@ export function MemberHandoverModal({
     if (simulateEmptyState) {
       return [];
     }
-    const matching = cards.filter((c) => c.memberId === selectedDepartingId);
+    const pool = useSampleCards
+      ? INITIAL_CARDS.map((c) => ({ ...c, memberId: selectedDepartingId }))
+      : cards;
+    const matching = pool.filter((c) => c.memberId === selectedDepartingId);
     if (matching.length > 0) return matching;
-    if (departingMember?.cardsCount === 0) {
+    if (departingMember?.cardsCount === 0 && !useSampleCards) {
       return [];
     }
     return matching;
-  }, [cards, selectedDepartingId, simulateEmptyState, departingMember]);
+  }, [cards, selectedDepartingId, simulateEmptyState, departingMember, useSampleCards]);
 
   // Synchronize selected cards with departingCards
   React.useEffect(() => {
@@ -109,13 +114,13 @@ export function MemberHandoverModal({
     const available = members.filter(
       (m) => m.id !== selectedDepartingId && m.id !== 'taylor-empty'
     );
-    if (!searchQuery.trim()) return available;
-    const q = searchQuery.toLowerCase();
+    if (!replacementSearchQuery.trim()) return available;
+    const q = replacementSearchQuery.toLowerCase();
     return available.filter(
       (m) =>
         m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q)
     );
-  }, [members, selectedDepartingId, searchQuery]);
+  }, [members, selectedDepartingId, replacementSearchQuery]);
 
   // Unique boards & lists count
   const uniqueBoards = useMemo(() => {
@@ -423,7 +428,7 @@ export function MemberHandoverModal({
                 </p>
               </div>
 
-              {/* Search input */}
+              {/* Step 1 Departing Member Search Input */}
               <div className="relative mb-3.5">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <SearchIcon className="w-4 h-4" color="#626f86" />
@@ -513,15 +518,15 @@ export function MemberHandoverModal({
                 </p>
               </div>
 
-              {/* Search input */}
+              {/* Step 2 Search input */}
               <div className="relative mb-3.5">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <SearchIcon className="w-4 h-4" color="#626f86" />
                 </div>
                 <input
                   type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={replacementSearchQuery}
+                  onChange={(e) => setReplacementSearchQuery(e.target.value)}
                   placeholder="Search for a member..."
                   className="w-full pl-9 pr-3.5 py-2 text-[14px] bg-white border border-[#dfe1e6] rounded-md text-[#172b4d] placeholder-[#626f86] focus:outline-none focus:border-[#0c66e4] focus:ring-2 focus:ring-blue-100 transition-all"
                 />
@@ -602,7 +607,10 @@ export function MemberHandoverModal({
                     </div>
                   </div>
                   <button
-                    onClick={() => setSimulateEmptyState(false)}
+                    onClick={() => {
+                      setSimulateEmptyState(false);
+                      setUseSampleCards(true);
+                    }}
                     className="mt-4 text-xs text-[#0c66e4] hover:underline cursor-pointer"
                   >
                     (Click to reload sample 24 cards)
