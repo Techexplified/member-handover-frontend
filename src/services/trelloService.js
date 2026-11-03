@@ -41,6 +41,10 @@ export function clearTrelloCredentials() {
 }
 
 export function isTrelloLiveConnected() {
+  // If running inside actual Trello iframe modal
+  if (typeof window !== 'undefined' && window.self !== window.top && window.TrelloPowerUp) {
+    return true;
+  }
   const { apiKey, token } = getTrelloCredentials();
   return Boolean(apiKey && token);
 }
@@ -77,6 +81,47 @@ export async function fetchLiveWorkspaces() {
 
 // Fetch Live Members of a Workspace
 export async function fetchLiveWorkspaceMembers(targetWorkspaceId = null) {
+  // If running inside Trello Power-Up iframe, automatically fetch real board/workspace members
+  if (typeof window !== 'undefined' && window.self !== window.top && window.TrelloPowerUp) {
+    try {
+      const t = window.TrelloPowerUp.iframe();
+      const [board, cards] = await Promise.all([
+        t.board('id', 'name', 'members'),
+        t.cards('id', 'idMembers').catch(() => []),
+      ]);
+      if (board && board.members && board.members.length > 0) {
+        return board.members.map((m) => {
+          const colors = [
+            { bg: '#dbeafe', color: '#1e40af' },
+            { bg: '#dcfce7', color: '#166534' },
+            { bg: '#fee2e2', color: '#991b1b' },
+            { bg: '#fef3c7', color: '#92400e' },
+            { bg: '#f3e8ff', color: '#6b21a8' },
+          ];
+          const colorIdx = Math.abs((m.id || '').charCodeAt(0)) % colors.length;
+          const assignedCards = (cards || []).filter(
+            (c) => c.idMembers && c.idMembers.includes(m.id)
+          );
+          return {
+            id: m.id,
+            name: m.fullName || m.username,
+            username: m.username,
+            email: `${m.username}@company.com`,
+            avatarType: m.avatarUrl ? 'photo' : 'initials',
+            avatarUrl: m.avatarUrl ? `${m.avatarUrl}/170.png` : null,
+            initials: m.initials || (m.fullName || m.username || 'TM').substring(0, 2).toUpperCase(),
+            bg: colors[colorIdx].bg,
+            color: colors[colorIdx].color,
+            role: 'Team Member',
+            cardsCount: assignedCards.length,
+          };
+        });
+      }
+    } catch (err) {
+      console.warn('Trello iframe context fetch fallback:', err);
+    }
+  }
+
   const { apiKey, token, workspaceId: savedWorkspaceId } = getTrelloCredentials();
   if (!apiKey || !token) throw new Error('Trello credentials missing');
 
@@ -131,6 +176,42 @@ export async function fetchLiveWorkspaceMembers(targetWorkspaceId = null) {
 
 // Fetch all live cards assigned to a member across boards
 export async function fetchLiveMemberCards(memberId) {
+  // If running inside Trello Power-Up iframe, fetch cards from the current board directly
+  if (typeof window !== 'undefined' && window.self !== window.top && window.TrelloPowerUp) {
+    try {
+      const t = window.TrelloPowerUp.iframe();
+      const [board, boardCards, boardLists] = await Promise.all([
+        t.board('id', 'name'),
+        t.cards('id', 'name', 'idMembers', 'idList', 'due'),
+        t.lists('id', 'name').catch(() => []),
+      ]);
+
+      const listMap = (boardLists || []).reduce((acc, l) => {
+        acc[l.id] = l.name;
+        return acc;
+      }, {});
+
+      const memberCards = (boardCards || []).filter(
+        (c) => c.idMembers && c.idMembers.includes(memberId)
+      );
+
+      return memberCards.map((c) => ({
+        id: c.id,
+        title: c.name,
+        board: board?.name || 'Current Board',
+        boardId: board?.id,
+        boardColor: '#0079bf',
+        list: listMap[c.idList] || 'In Progress',
+        listId: c.idList,
+        memberId: memberId,
+        dueDate: c.due ? new Date(c.due).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : null,
+        canEdit: true,
+      }));
+    } catch (err) {
+      console.warn('Trello iframe cards fetch fallback:', err);
+    }
+  }
+
   const { apiKey, token } = getTrelloCredentials();
   if (!apiKey || !token) throw new Error('Trello credentials missing');
 
