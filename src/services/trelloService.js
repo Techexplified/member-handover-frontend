@@ -18,7 +18,7 @@ export function getTrelloCredentials() {
     queryToken ||
     import.meta.env.VITE_TRELLO_TOKEN ||
     localStorage.getItem('trello_token') ||
-    '';
+    'ATTAf2dea557e289444bc171e8caabf7299021156eeb9670ff074b0827db867dcc85B28B6089';
 
   const workspaceId =
     urlParams.get('workspace') ||
