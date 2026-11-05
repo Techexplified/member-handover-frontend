@@ -36,16 +36,8 @@
           },
 
           'authorization-status': function (t) {
-            return t.get('member', 'private', 'token').then(function (token) {
+            return t.get('member', 'private', 'trello_token').then(function (token) {
               return { authorized: Boolean(token) };
-            });
-          },
-
-          'show-authorization': function (t) {
-            return t.popup({
-              title: 'Authorize Member Handover',
-              url: baseUrl + '/?auth=true',
-              height: 300,
             });
           },
         });

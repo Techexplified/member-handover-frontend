@@ -1,41 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { CloseIcon, TrelloIcon, CheckIcon } from './Icons';
 import {
-  getTrelloCredentials,
+  getTrelloCredentialsAsync,
   saveTrelloCredentials,
   clearTrelloCredentials,
-  fetchLiveWorkspaces,
+  verifyTrelloCredentials,
 } from '../services/trelloService';
 
 export function TrelloConfigModal({ isOpen, onClose, onConnected }) {
   const [apiKey, setApiKey] = useState('');
   const [token, setToken] = useState('');
-  const [workspaces, setWorkspaces] = useState([]);
-  const [selectedWorkspace, setSelectedWorkspace] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [successUser, setSuccessUser] = useState(null);
 
   useEffect(() => {
-    const creds = getTrelloCredentials();
-    setApiKey(creds.apiKey);
-    setToken(creds.token);
-    setSelectedWorkspace(creds.workspaceId);
+    let isMounted = true;
+    getTrelloCredentialsAsync().then((creds) => {
+      if (isMounted) {
+        setApiKey(creds.apiKey || '');
+        setToken(creds.token || '');
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
   }, [isOpen]);
 
-  const handleFetchWorkspaces = async () => {
-    if (!apiKey || !token) {
+  const handleSaveAndConnect = async () => {
+    if (!apiKey.trim() || !token.trim()) {
       setErrorMessage('Please enter both Trello API Key and Token.');
       return;
     }
     setIsLoading(true);
     setErrorMessage('');
     try {
-      saveTrelloCredentials(apiKey, token);
-      const orgs = await fetchLiveWorkspaces();
-      setWorkspaces(orgs);
-      if (orgs.length > 0) {
-        setSelectedWorkspace(orgs[0].id);
-      }
+      const user = await verifyTrelloCredentials(apiKey, token);
+      await saveTrelloCredentials(apiKey, token);
+      setSuccessUser(user);
+      setTimeout(() => {
+        if (onConnected) onConnected();
+        onClose();
+      }, 1000);
     } catch (err) {
       setErrorMessage(err.message || 'Could not verify credentials with Trello.');
     } finally {
@@ -43,22 +49,11 @@ export function TrelloConfigModal({ isOpen, onClose, onConnected }) {
     }
   };
 
-  const handleSaveAndConnect = () => {
-    if (!apiKey || !token) {
-      setErrorMessage('Please enter your API Key and Token.');
-      return;
-    }
-    saveTrelloCredentials(apiKey, token, selectedWorkspace);
-    if (onConnected) onConnected();
-    onClose();
-  };
-
-  const handleDisconnect = () => {
-    clearTrelloCredentials();
+  const handleDisconnect = async () => {
+    await clearTrelloCredentials();
     setApiKey('');
     setToken('');
-    setWorkspaces([]);
-    setSelectedWorkspace('');
+    setSuccessUser(null);
     if (onConnected) onConnected();
     onClose();
   };
@@ -73,10 +68,13 @@ export function TrelloConfigModal({ isOpen, onClose, onConnected }) {
           <div className="flex items-center gap-2">
             <TrelloIcon className="w-5 h-5" color="#0c66e4" />
             <h3 className="text-base font-bold text-[#172b4d]">
-              Connect Live Trello Workspace
+              Connect Trello for Live Reassignment
             </h3>
           </div>
-          <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-700 rounded cursor-pointer">
+          <button
+            onClick={onClose}
+            className="p-1 text-slate-400 hover:text-slate-700 rounded cursor-pointer"
+          >
             <CloseIcon className="w-4 h-4" />
           </button>
         </div>
@@ -84,31 +82,31 @@ export function TrelloConfigModal({ isOpen, onClose, onConnected }) {
         {/* Body */}
         <div className="p-5 space-y-4 text-xs">
           <p className="text-[#44546f] leading-normal">
-            Live mode me deploy karne ke baad yeh aapke real Trello Workspace ke employees aur cards ko live fetch karta hai.
+            Trello board ke real cards se members ko add aur remove karne ke liye Trello 1-time authorization allow karta hai:
           </p>
 
           {/* API Key */}
           <div>
             <label className="block font-semibold text-[#172b4d] mb-1">
-              1. Trello API Key
+              1. Trello Power-Up API Key
             </label>
             <input
               type="text"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              placeholder="e.g. 5d89f72b9a..."
+              placeholder="e.g. 5d89f72b9a384..."
               className="w-full px-3 py-2 border border-slate-200 rounded-md font-mono text-xs focus:outline-none focus:border-[#0c66e4]"
             />
-            <span className="text-[11px] text-slate-500 mt-0.5 block">
+            <span className="text-[11px] text-slate-500 mt-1 block">
               <a
                 href="https://trello.com/power-ups/admin"
                 target="_blank"
                 rel="noreferrer"
-                className="text-[#0c66e4] hover:underline"
+                className="text-[#0c66e4] font-semibold hover:underline"
               >
-                Trello Developer Portal
+                👉 trello.com/power-ups/admin
               </a>{' '}
-              se apni API key generate karein.
+              par jayein &gt; apne app par click karein &gt; <b>API key</b> copy karein.
             </span>
           </div>
 
@@ -124,10 +122,10 @@ export function TrelloConfigModal({ isOpen, onClose, onConnected }) {
               placeholder="ATTA... or your personal token"
               className="w-full px-3 py-2 border border-slate-200 rounded-md font-mono text-xs focus:outline-none focus:border-[#0c66e4]"
             />
-            {apiKey && (
-              <span className="text-[11px] text-slate-500 mt-0.5 block">
+            {apiKey ? (
+              <span className="text-[11px] text-slate-500 mt-1 block">
                 <a
-                  href={`https://trello.com/1/authorize?expiration=never&name=Member+Handover&scope=read,write,account&response_type=token&key=${apiKey}`}
+                  href={`https://trello.com/1/authorize?expiration=never&name=Member+Handover&scope=read,write&response_type=token&key=${apiKey.trim()}`}
                   target="_blank"
                   rel="noreferrer"
                   className="text-[#0c66e4] font-semibold hover:underline"
@@ -135,26 +133,20 @@ export function TrelloConfigModal({ isOpen, onClose, onConnected }) {
                   👉 Click here to generate 1-click Trello Token
                 </a>
               </span>
+            ) : (
+              <span className="text-[11px] text-slate-400 mt-1 block">
+                (API Key enter karne ke baad Token generate karne ka direct link yahan aayega)
+              </span>
             )}
           </div>
 
-          {/* Workspaces Selector */}
-          {workspaces.length > 0 && (
-            <div>
-              <label className="block font-semibold text-[#172b4d] mb-1">
-                3. Choose Target Workspace
-              </label>
-              <select
-                value={selectedWorkspace}
-                onChange={(e) => setSelectedWorkspace(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-md text-xs focus:outline-none focus:border-[#0c66e4]"
-              >
-                {workspaces.map((org) => (
-                  <option key={org.id} value={org.id}>
-                    {org.displayName} ({org.name})
-                  </option>
-                ))}
-              </select>
+          {/* Success Notification */}
+          {successUser && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-md text-[11.5px] flex items-center gap-2">
+              <CheckIcon className="w-4 h-4 text-emerald-600" />
+              <span>
+                Connected as <b>@{successUser.username}</b> ({successUser.fullName})!
+              </span>
             </div>
           )}
 
@@ -166,38 +158,29 @@ export function TrelloConfigModal({ isOpen, onClose, onConnected }) {
           )}
 
           {/* Action buttons */}
-          <div className="pt-2 flex items-center justify-between">
+          <div className="pt-2 flex items-center justify-between border-t border-slate-100">
             <button
               type="button"
               onClick={handleDisconnect}
               className="text-slate-500 hover:text-rose-600 text-[11.5px] cursor-pointer"
             >
-              Reset / Disconnect
+              Disconnect
             </button>
 
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleFetchWorkspaces}
-                disabled={isLoading || !apiKey || !token}
-                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-[#172b4d] font-semibold rounded-md transition-colors cursor-pointer disabled:opacity-50"
-              >
-                {isLoading ? 'Verifying...' : 'Verify & Find Workspaces'}
-              </button>
-
-              <button
-                type="button"
-                onClick={handleSaveAndConnect}
-                disabled={!apiKey || !token}
-                className="px-4 py-1.5 bg-[#0c66e4] hover:bg-[#0055cc] text-white font-semibold rounded-md shadow-xs transition-colors cursor-pointer disabled:opacity-50"
-              >
-                Connect Live
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleSaveAndConnect}
+              disabled={isLoading || !apiKey.trim() || !token.trim()}
+              className="px-4 py-2 bg-[#0c66e4] hover:bg-[#0055cc] text-white font-semibold rounded-md shadow-xs transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
+            >
+              {isLoading && (
+                <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              )}
+              <span>{isLoading ? 'Verifying...' : 'Save & Connect'}</span>
+            </button>
           </div>
         </div>
       </div>
     </div>
   );
 }
-

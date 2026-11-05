@@ -2,7 +2,7 @@
 
 const TRELLO_API_BASE = 'https://api.trello.com/1';
 
-// Read API credentials from environment or localStorage or URL parameters
+// Read API credentials from environment or localStorage or URL parameters synchronously
 export function getTrelloCredentials() {
   const urlParams = new URLSearchParams(window.location.search);
   const queryKey = urlParams.get('key');
@@ -28,16 +28,60 @@ export function getTrelloCredentials() {
   return { apiKey, token, workspaceId };
 }
 
-export function saveTrelloCredentials(apiKey, token, workspaceId = '') {
+// Read API credentials asynchronously, falling back to Trello's private plugin storage
+export async function getTrelloCredentialsAsync() {
+  const creds = getTrelloCredentials();
+  let apiKey = creds.apiKey;
+  let token = creds.token;
+  let workspaceId = creds.workspaceId;
+
+  if ((!apiKey || !token) && typeof window !== 'undefined' && window.TrelloPowerUp) {
+    try {
+      const t = window.TrelloPowerUp.iframe();
+      const [storedKey, storedToken] = await Promise.all([
+        t.get('member', 'private', 'trello_api_key').catch(() => null),
+        t.get('member', 'private', 'trello_token').catch(() => null),
+      ]);
+      if (storedKey && !apiKey) apiKey = storedKey;
+      if (storedToken && !token) token = storedToken;
+    } catch {
+      // ignore
+    }
+  }
+
+  return { apiKey, token, workspaceId };
+}
+
+export async function saveTrelloCredentials(apiKey, token, workspaceId = '') {
   if (apiKey) localStorage.setItem('trello_api_key', apiKey.trim());
   if (token) localStorage.setItem('trello_token', token.trim());
   if (workspaceId) localStorage.setItem('trello_workspace_id', workspaceId.trim());
+
+  if (typeof window !== 'undefined' && window.TrelloPowerUp) {
+    try {
+      const t = window.TrelloPowerUp.iframe();
+      if (apiKey) await t.set('member', 'private', 'trello_api_key', apiKey.trim());
+      if (token) await t.set('member', 'private', 'trello_token', token.trim());
+    } catch {
+      // ignore
+    }
+  }
 }
 
-export function clearTrelloCredentials() {
+export async function clearTrelloCredentials() {
   localStorage.removeItem('trello_api_key');
   localStorage.removeItem('trello_token');
   localStorage.removeItem('trello_workspace_id');
+
+  if (typeof window !== 'undefined' && window.TrelloPowerUp) {
+    try {
+      const t = window.TrelloPowerUp.iframe();
+      await t.remove('member', 'private', 'trello_api_key');
+      await t.remove('member', 'private', 'trello_token');
+    } catch {
+      // ignore
+    }
+  }
 }
 
 export function isTrelloLiveConnected() {
@@ -49,16 +93,32 @@ export function isTrelloLiveConnected() {
   return Boolean(apiKey && token);
 }
 
+export function hasTrelloApiCredentials() {
+  const { apiKey, token } = getTrelloCredentials();
+  return Boolean(apiKey && token);
+}
+
+// Verify credentials against Trello REST API
+export async function verifyTrelloCredentials(apiKey, token) {
+  if (!apiKey || !token) throw new Error('API Key and Token are required.');
+  const res = await fetch(`${TRELLO_API_BASE}/members/me?key=${apiKey.trim()}&token=${token.trim()}&fields=id,username,fullName`);
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`Authentication failed (${res.status}): ${errorText}`);
+  }
+  return await res.json();
+}
+
 // Generate 1-click Authorization URL for users
 export function getTrelloAuthorizeUrl(apiKey) {
   const key = apiKey || getTrelloCredentials().apiKey;
-  const returnUrl = encodeURIComponent(window.location.origin + window.location.pathname);
-  return `https://trello.com/1/authorize?expiration=never&name=Member+Handover+PowerUp&scope=read,write,account&response_type=token&key=${key}&return_url=${returnUrl}`;
+  const returnUrl = encodeURIComponent(window.location.origin + '/auth-callback.html');
+  return `https://trello.com/1/authorize?expiration=never&name=Member+Handover&scope=read,write,account&response_type=token&key=${key}&return_url=${returnUrl}`;
 }
 
 // Fetch Workspaces (Organizations) the authenticated user belongs to
 export async function fetchLiveWorkspaces() {
-  const { apiKey, token } = getTrelloCredentials();
+  const { apiKey, token } = await getTrelloCredentialsAsync();
   if (!apiKey || !token) throw new Error('Trello API key and token are required');
 
   const res = await fetch(
@@ -80,19 +140,42 @@ export async function fetchLiveWorkspaces() {
 }
 
 // Helper to check if a card is assigned to a member (handles SDK 'members', 'idMembers', username & ID)
-function isCardAssignedToMember(card, memberId) {
+export function isCardAssignedToMember(card, memberId, membersList = []) {
   if (!card || !memberId) return false;
-  const target = String(memberId).toLowerCase();
+  const target = String(memberId).toLowerCase().trim();
 
+  // Find member in known members list to match both 24-hex ID, username, and fullName
+  const knownMember = membersList.find(
+    (m) =>
+      String(m.id).toLowerCase().trim() === target ||
+      String(m.username || '').toLowerCase().trim() === target ||
+      String(m.name || '').toLowerCase().trim() === target
+  );
+
+  const targets = new Set([target]);
+  if (knownMember) {
+    if (knownMember.id) targets.add(String(knownMember.id).toLowerCase().trim());
+    if (knownMember.username) targets.add(String(knownMember.username).toLowerCase().trim());
+    if (knownMember.fullName) targets.add(String(knownMember.fullName).toLowerCase().trim());
+  }
+
+  // 1. Check card.idMembers (array of member ID strings)
+  if (Array.isArray(card.idMembers)) {
+    if (card.idMembers.some((id) => targets.has(String(id).toLowerCase().trim()))) {
+      return true;
+    }
+  }
+
+  // 2. Check card.members (array of member objects or string IDs)
   if (Array.isArray(card.members)) {
     if (
       card.members.some((m) => {
         if (!m) return false;
-        if (typeof m === 'string') return m.toLowerCase() === target;
+        if (typeof m === 'string') return targets.has(m.toLowerCase().trim());
         return (
-          (m.id && String(m.id).toLowerCase() === target) ||
-          (m.username && String(m.username).toLowerCase() === target) ||
-          (m.fullName && String(m.fullName).toLowerCase() === target)
+          (m.id && targets.has(String(m.id).toLowerCase().trim())) ||
+          (m.username && targets.has(String(m.username).toLowerCase().trim())) ||
+          (m.fullName && targets.has(String(m.fullName).toLowerCase().trim()))
         );
       })
     ) {
@@ -100,25 +183,27 @@ function isCardAssignedToMember(card, memberId) {
     }
   }
 
-  if (Array.isArray(card.idMembers)) {
-    if (card.idMembers.some((id) => String(id).toLowerCase() === target)) {
-      return true;
-    }
-  }
-
   return false;
 }
 
-// Fetch Live Members of a Workspace
+// Fetch Live Members of a Board or Workspace
 export async function fetchLiveWorkspaceMembers(targetWorkspaceId = null) {
-  // If running inside Trello Power-Up iframe, automatically fetch real board/workspace members
+  // If running inside Trello Power-Up iframe, automatically fetch real board members
   if (typeof window !== 'undefined' && window.self !== window.top && window.TrelloPowerUp) {
     try {
       const t = window.TrelloPowerUp.iframe();
-      const [board, cards] = await Promise.all([
-        t.board('id', 'name', 'members'),
-        t.cards('all').catch(() => []),
-      ]);
+      let boardCards = [];
+      try {
+        boardCards = await t.cards('id', 'name', 'idList', 'idMembers', 'members', 'due');
+      } catch {
+        boardCards = await t.cards('all').catch(() => []);
+      }
+      if (!boardCards || boardCards.length === 0) {
+        boardCards = await t.cards('all').catch(() => []);
+      }
+
+      const board = await t.board('id', 'name', 'members').catch(() => null);
+
       if (board && board.members && board.members.length > 0) {
         return board.members.map((m) => {
           const colors = [
@@ -129,8 +214,8 @@ export async function fetchLiveWorkspaceMembers(targetWorkspaceId = null) {
             { bg: '#f3e8ff', color: '#6b21a8' },
           ];
           const colorIdx = Math.abs((m.id || '').charCodeAt(0)) % colors.length;
-          const assignedCards = (cards || []).filter(
-            (c) => isCardAssignedToMember(c, m.id) || isCardAssignedToMember(c, m.username)
+          const assignedCards = (boardCards || []).filter(
+            (c) => isCardAssignedToMember(c, m.id, board.members) || isCardAssignedToMember(c, m.username, board.members)
           );
           return {
             id: m.id,
@@ -152,12 +237,11 @@ export async function fetchLiveWorkspaceMembers(targetWorkspaceId = null) {
     }
   }
 
-  const { apiKey, token, workspaceId: savedWorkspaceId } = getTrelloCredentials();
+  const { apiKey, token, workspaceId: savedWorkspaceId } = await getTrelloCredentialsAsync();
   if (!apiKey || !token) throw new Error('Trello credentials missing');
 
   let workspaceId = targetWorkspaceId || savedWorkspaceId;
 
-  // If no workspaceId provided, get the user's first workspace
   if (!workspaceId) {
     const workspaces = await fetchLiveWorkspaces();
     if (workspaces.length === 0) {
@@ -178,7 +262,6 @@ export async function fetchLiveWorkspaceMembers(targetWorkspaceId = null) {
   const rawMembers = await res.json();
 
   return rawMembers.map((m) => {
-    // Generate distinct color from initials for fallback
     const colors = [
       { bg: '#dbeafe', color: '#1e40af' },
       { bg: '#dcfce7', color: '#166534' },
@@ -192,27 +275,36 @@ export async function fetchLiveWorkspaceMembers(targetWorkspaceId = null) {
       id: m.id,
       name: m.fullName || m.username,
       username: m.username,
-      email: `${m.username}@company.com`, // Trello API protects emails by default unless authorized
+      email: `${m.username}@company.com`,
       avatarType: m.avatarUrl ? 'photo' : 'initials',
       avatarUrl: m.avatarUrl ? `${m.avatarUrl}/170.png` : null,
       initials: m.initials || m.fullName?.substring(0, 2).toUpperCase() || 'TM',
       bg: colors[colorIdx].bg,
       color: colors[colorIdx].color,
       role: 'Team Member',
-      cardsCount: 0, // Will be populated dynamically
+      cardsCount: 0,
     };
   });
 }
 
 // Fetch all live cards assigned to a member across boards
-export async function fetchLiveMemberCards(memberId) {
-  // If running inside Trello Power-Up iframe, fetch cards from the current board directly
+export async function fetchLiveMemberCards(memberId, allMembers = []) {
+  // If running inside Trello Power-Up iframe, fetch cards from current board directly
   if (typeof window !== 'undefined' && window.self !== window.top && window.TrelloPowerUp) {
     try {
       const t = window.TrelloPowerUp.iframe();
-      const [board, boardCards, boardLists] = await Promise.all([
-        t.board('id', 'name'),
-        t.cards('all').catch(() => []),
+      let boardCards = [];
+      try {
+        boardCards = await t.cards('id', 'name', 'idList', 'idMembers', 'members', 'due');
+      } catch {
+        boardCards = await t.cards('all').catch(() => []);
+      }
+      if (!boardCards || boardCards.length === 0) {
+        boardCards = await t.cards('all').catch(() => []);
+      }
+
+      const [board, boardLists] = await Promise.all([
+        t.board('id', 'name').catch(() => null),
         t.lists('id', 'name').catch(() => []),
       ]);
 
@@ -222,7 +314,7 @@ export async function fetchLiveMemberCards(memberId) {
       }, {});
 
       const memberCards = (boardCards || []).filter((c) =>
-        isCardAssignedToMember(c, memberId)
+        isCardAssignedToMember(c, memberId, allMembers)
       );
 
       return memberCards.map((c) => ({
@@ -242,7 +334,7 @@ export async function fetchLiveMemberCards(memberId) {
     }
   }
 
-  const { apiKey, token } = getTrelloCredentials();
+  const { apiKey, token } = await getTrelloCredentialsAsync();
   if (!apiKey || !token) throw new Error('Trello credentials missing');
 
   const res = await fetch(
@@ -274,11 +366,20 @@ export async function executeLiveReassignment({
   departingMemberId,
   replacementMemberId,
   cardIds,
-  cards,
+  cards = [],
+  members = [],
   onProgress,
 }) {
-  const { apiKey, token } = getTrelloCredentials();
-  if (!apiKey || !token) throw new Error('Trello credentials missing');
+  const { apiKey, token } = await getTrelloCredentialsAsync();
+  if (!apiKey || !token) {
+    throw new Error('AUTH_REQUIRED');
+  }
+
+  const departingObj = members.find((m) => m.id === departingMemberId || m.username === departingMemberId);
+  const replacementObj = members.find((m) => m.id === replacementMemberId || m.username === replacementMemberId);
+
+  const depIdOrUser = departingObj?.id || departingMemberId;
+  const repIdOrUser = replacementObj?.id || replacementMemberId;
 
   const results = {
     updated: [],
@@ -304,31 +405,35 @@ export async function executeLiveReassignment({
 
     try {
       // 1. Add replacement member (if not 'unassigned')
-      if (replacementMemberId && replacementMemberId !== 'unassigned') {
+      if (repIdOrUser && repIdOrUser !== 'unassigned') {
         const addRes = await fetch(
-          `${TRELLO_API_BASE}/cards/${cardId}/idMembers?value=${replacementMemberId}&key=${apiKey}&token=${token}`,
+          `${TRELLO_API_BASE}/cards/${cardId}/idMembers?value=${encodeURIComponent(repIdOrUser)}&key=${apiKey}&token=${token}`,
           { method: 'POST' }
         );
 
         if (!addRes.ok) {
-          if (addRes.status === 401 || addRes.status === 403) {
-            results.skipped.push({
-              id: cardId,
-              title: cardObj.title,
-              board: cardObj.board,
-              list: cardObj.list,
-              reason: "Replacement member is not a member of this board, or you don't have permission.",
-            });
-            continue;
+          const errText = await addRes.text();
+          // If member is already assigned, Trello might respond with 400 'member already added'
+          if (!errText.toLowerCase().includes('already')) {
+            if (addRes.status === 401 || addRes.status === 403) {
+              results.skipped.push({
+                id: cardId,
+                title: cardObj.title,
+                board: cardObj.board,
+                list: cardObj.list,
+                reason: "Permission denied: You or the replacement member don't have permission on this card.",
+              });
+              continue;
+            }
+            throw new Error(`Failed to assign member: HTTP ${addRes.status} (${errText})`);
           }
-          throw new Error(`HTTP ${addRes.status}`);
         }
       }
 
       // 2. Remove departing member
-      if (departingMemberId) {
+      if (depIdOrUser) {
         const removeRes = await fetch(
-          `${TRELLO_API_BASE}/cards/${cardId}/idMembers/${departingMemberId}?key=${apiKey}&token=${token}`,
+          `${TRELLO_API_BASE}/cards/${cardId}/idMembers/${encodeURIComponent(depIdOrUser)}?key=${apiKey}&token=${token}`,
           { method: 'DELETE' }
         );
 
@@ -338,7 +443,7 @@ export async function executeLiveReassignment({
             title: cardObj.title,
             board: cardObj.board,
             list: cardObj.list,
-            reason: "You don't have permission to edit this card.",
+            reason: "Permission denied: You don't have permission to remove members from this card.",
           });
           continue;
         }
@@ -348,7 +453,7 @@ export async function executeLiveReassignment({
       try {
         await fetch(
           `${TRELLO_API_BASE}/cards/${cardId}/actions/comments?text=${encodeURIComponent(
-            '🔄 Card handed over via Member Handover Power-Up.'
+            `🔄 Card handed over from ${departingObj?.name || 'previous member'} to ${replacementObj?.name || 'new member'} via Member Handover Power-Up.`
           )}&key=${apiKey}&token=${token}`,
           { method: 'POST' }
         );
@@ -374,4 +479,3 @@ export async function executeLiveReassignment({
 
   return results;
 }
-

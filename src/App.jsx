@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { INITIAL_MEMBERS, INITIAL_CARDS } from './data/mockData';
 import { MemberHandoverModal } from './components/MemberHandoverModal';
+import { TrelloConfigModal } from './components/TrelloConfigModal';
 import {
   isTrelloLiveConnected,
+  getTrelloCredentialsAsync,
   fetchLiveWorkspaceMembers,
   fetchLiveMemberCards,
   executeLiveReassignment,
@@ -13,9 +15,15 @@ export default function App() {
   const [members, setMembers] = useState(INITIAL_MEMBERS);
   const [cards, setCards] = useState(INITIAL_CARDS);
   const [isLiveConnected, setIsLiveConnected] = useState(false);
+  const [hasCredentials, setHasCredentials] = useState(false);
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
 
-  // Load real Trello members
+  // Load real Trello members and cards
   const loadLiveTrelloData = useCallback(async () => {
+    const creds = await getTrelloCredentialsAsync();
+    const hasCreds = Boolean(creds.apiKey && creds.token);
+    setHasCredentials(hasCreds);
+
     if (!isTrelloLiveConnected()) {
       setIsLiveConnected(false);
       setMembers(INITIAL_MEMBERS);
@@ -30,8 +38,8 @@ export default function App() {
         setIsLiveConnected(true);
 
         try {
-          const liveCards = await fetchLiveMemberCards(liveMembers[0].id);
-          setCards(liveCards);
+          const liveCards = await fetchLiveMemberCards(liveMembers[0].id, liveMembers);
+          setCards(liveCards || []);
         } catch {
           setCards([]);
         }
@@ -53,19 +61,42 @@ export default function App() {
     if (!isLiveConnected) return;
 
     try {
-      const liveCards = await fetchLiveMemberCards(memberId);
-      setCards(liveCards);
+      const liveCards = await fetchLiveMemberCards(memberId, members);
+      setCards(liveCards || []);
     } catch (err) {
       console.error('Failed to fetch cards for member:', err);
     }
   };
 
-  // Reassignment handler (Live Trello API or Local State)
-  const handleCompleteHandover = async ({ departingId, replacementId, cardIds }) => {
-    // Always update local state immediately so UI reflects the handover instantly
+  // Live Reassignment execution handler
+  const handleCompleteHandover = async ({
+    departingId,
+    replacementId,
+    cardIds,
+    onProgress,
+  }) => {
+    // 1. Check if Trello API credentials are ready
+    const creds = await getTrelloCredentialsAsync();
+    if (!creds.apiKey || !creds.token) {
+      return { authRequired: true };
+    }
+
+    // 2. Perform live mutation on Trello REST API
+    const results = await executeLiveReassignment({
+      departingMemberId: departingId,
+      replacementMemberId: replacementId,
+      cardIds,
+      cards,
+      members,
+      onProgress,
+    });
+
+    // 3. Update local state only for successfully mutated cards
+    const updatedIds = new Set((results.updated || []).map((c) => c.id));
+
     setCards((prevCards) =>
       prevCards.map((card) => {
-        if (cardIds.includes(card.id)) {
+        if (updatedIds.has(card.id)) {
           return {
             ...card,
             memberId: replacementId === 'unassigned' ? null : replacementId,
@@ -80,32 +111,20 @@ export default function App() {
         if (member.id === departingId) {
           return {
             ...member,
-            cardsCount: Math.max(0, (member.cardsCount || 0) - cardIds.length),
+            cardsCount: Math.max(0, (member.cardsCount || 0) - results.updated.length),
           };
         }
         if (member.id === replacementId) {
           return {
             ...member,
-            cardsCount: (member.cardsCount || 0) + cardIds.length,
+            cardsCount: (member.cardsCount || 0) + results.updated.length,
           };
         }
         return member;
       })
     );
 
-    // If live connected with credentials, also perform remote Trello REST API sync
-    if (isLiveConnected) {
-      try {
-        await executeLiveReassignment({
-          departingMemberId: departingId,
-          replacementMemberId: replacementId,
-          cardIds,
-          cards,
-        });
-      } catch (err) {
-        console.warn('Live reassignment server sync notice:', err.message);
-      }
-    }
+    return results;
   };
 
   const handleCloseModal = () => {
@@ -130,6 +149,14 @@ export default function App() {
         onCompleteHandover={handleCompleteHandover}
         onSelectDepartingMember={handleSelectDepartingMember}
         isLiveConnected={isLiveConnected}
+        hasCredentials={hasCredentials}
+        onOpenConfig={() => setIsConfigOpen(true)}
+      />
+
+      <TrelloConfigModal
+        isOpen={isConfigOpen}
+        onClose={() => setIsConfigOpen(false)}
+        onConnected={loadLiveTrelloData}
       />
     </div>
   );

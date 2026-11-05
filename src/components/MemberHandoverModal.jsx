@@ -30,6 +30,8 @@ export function MemberHandoverModal({
   onCompleteHandover,
   onSelectDepartingMember,
   isLiveConnected = false,
+  hasCredentials = false,
+  onOpenConfig,
 }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,6 +43,8 @@ export function MemberHandoverModal({
   const [viewByBoardMode, setViewByBoardMode] = useState(false);
   const [simulateEmptyState, setSimulateEmptyState] = useState(false);
   const [useSampleCards, setUseSampleCards] = useState(false);
+  const [progressInfo, setProgressInfo] = useState(null);
+  const [executionResults, setExecutionResults] = useState(null);
 
   // Sync selection if members list changes (e.g., live Trello members loaded)
   React.useEffect(() => {
@@ -147,8 +151,25 @@ export function MemberHandoverModal({
     );
   }, [departingCards, cardSearchQuery]);
 
-  // Updated cards source (use real reassigned cards if available, fallback to mock)
+  // Updated cards source (use real reassigned cards if available)
   const updatedCardsSource = useMemo(() => {
+    if (executionResults && executionResults.updated && executionResults.updated.length > 0) {
+      return executionResults.updated.map((c) => ({
+        id: c.id,
+        title: c.title,
+        board: c.board || 'Current Board',
+        list: c.list || 'To Do',
+        previousMember: departingMember?.name || 'Previous',
+        previousAvatarBg: departingMember?.bg || '#dbeafe',
+        previousAvatarColor: departingMember?.color || '#1e40af',
+        previousAvatarInitials: departingMember?.initials || 'DM',
+        newMember: replacementMember?.name || 'Replacement',
+        newAvatarBg: replacementMember?.bg || '#dcfce7',
+        newAvatarColor: replacementMember?.color || '#166534',
+        newAvatarInitials: replacementMember?.initials || 'RM',
+      }));
+    }
+
     const reassigned = departingCards
       .filter((c) => selectedCardIds.includes(c.id))
       .map((c) => ({
@@ -167,8 +188,22 @@ export function MemberHandoverModal({
       }));
 
     if (reassigned.length > 0) return reassigned;
-    return UPDATED_CARDS_LIST;
-  }, [departingCards, selectedCardIds, departingMember, replacementMember]);
+    return [];
+  }, [departingCards, selectedCardIds, departingMember, replacementMember, executionResults]);
+
+  // Skipped cards source
+  const skippedCardsSource = useMemo(() => {
+    if (executionResults && executionResults.skipped && executionResults.skipped.length > 0) {
+      return executionResults.skipped.map((c) => ({
+        id: c.id,
+        title: c.title,
+        board: c.board || 'Current Board',
+        list: c.list || 'To Do',
+        reason: c.reason || "Permission denied: You don't have permission to edit this card.",
+      }));
+    }
+    return [];
+  }, [executionResults]);
 
   // Filtered updated cards for "Updated cards" screen
   const filteredUpdatedCards = useMemo(() => {
@@ -220,20 +255,51 @@ export function MemberHandoverModal({
   };
 
   // Execution
-  const handleConfirmHandover = () => {
+  const handleConfirmHandover = async () => {
+    if (!hasCredentials) {
+      if (onOpenConfig) {
+        onOpenConfig();
+      }
+      return;
+    }
+
     setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      setIsCompleted(true);
-      setCompletionView('SUMMARY');
+    setProgressInfo({
+      current: 0,
+      total: selectedCardIds.length,
+      percent: 0,
+      cardTitle: 'Connecting to Trello...',
+    });
+
+    try {
       if (onCompleteHandover) {
-        onCompleteHandover({
+        const results = await onCompleteHandover({
           departingId: selectedDepartingId,
           replacementId: selectedReplacementId,
           cardIds: selectedCardIds,
+          onProgress: (p) => setProgressInfo(p),
         });
+
+        if (results && results.authRequired) {
+          setIsProcessing(false);
+          if (onOpenConfig) onOpenConfig();
+          return;
+        }
+
+        setExecutionResults(results || null);
       }
-    }, 1200);
+
+      setIsProcessing(false);
+      setIsCompleted(true);
+      setCompletionView('SUMMARY');
+    } catch (err) {
+      setIsProcessing(false);
+      if (err.message === 'AUTH_REQUIRED') {
+        if (onOpenConfig) onOpenConfig();
+      } else {
+        alert('Trello reassignment notice: ' + err.message);
+      }
+    }
   };
 
   const handleRetryCard = (cardId) => {
@@ -278,13 +344,35 @@ export function MemberHandoverModal({
             Member Handover
           </h2>
         </div>
-        <button
-          onClick={handleCloseDialog}
-          aria-label="Close dialog"
-          className="p-1 rounded-md text-[#626f86] hover:text-[#172b4d] hover:bg-slate-100 transition-colors focus:outline-none cursor-pointer"
-        >
-          <CloseIcon className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          {hasCredentials ? (
+            <button
+              type="button"
+              onClick={onOpenConfig}
+              title="Trello API connected. Click to edit."
+              className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-full transition-colors cursor-pointer"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Live Board Sync</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onOpenConfig}
+              title="Click to enter Trello API Key & Token for live updates"
+              className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-full transition-colors cursor-pointer"
+            >
+              <span>🔑 Connect API Key</span>
+            </button>
+          )}
+          <button
+            onClick={handleCloseDialog}
+            aria-label="Close dialog"
+            className="p-1 rounded-md text-[#626f86] hover:text-[#172b4d] hover:bg-slate-100 transition-colors focus:outline-none cursor-pointer"
+          >
+            <CloseIcon className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
         {/* ================= STEPPER PROGRESS BAR ================= */}
@@ -872,10 +960,48 @@ export function MemberHandoverModal({
                 </div>
               </div>
 
+              {!hasCredentials && (
+                <div className="mt-3.5 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-left flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-2.5">
+                    <AlertCircleIcon className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
+                    <div className="text-[12px] text-amber-900 leading-snug">
+                      <span className="font-semibold block mb-0.5">Trello Board Sync Setup Required</span>
+                      To update real cards on this board, Trello requires an API Key & Token.
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onOpenConfig}
+                    className="px-3 py-1.5 text-[11.5px] font-semibold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-md transition-colors cursor-pointer flex-shrink-0"
+                  >
+                    Connect API
+                  </button>
+                </div>
+              )}
+
               {isProcessing && (
-                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-center gap-2.5 text-xs font-semibold text-[#0c66e4]">
-                  <div className="w-4 h-4 border-2 border-[#0c66e4]/30 border-t-[#0c66e4] rounded-full animate-spin" />
-                  <span>Reassigning cards and updating board permissions...</span>
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex flex-col items-center justify-center gap-2 text-xs font-semibold text-[#0c66e4]">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-[#0c66e4]/30 border-t-[#0c66e4] rounded-full animate-spin" />
+                    <span>
+                      {progressInfo
+                        ? `Updating Trello board (${progressInfo.current} of ${progressInfo.total})...`
+                        : 'Connecting to Trello REST API...'}
+                    </span>
+                  </div>
+                  {progressInfo?.cardTitle && (
+                    <div className="text-[11px] text-[#44546f] truncate max-w-xs font-normal">
+                      Card: {progressInfo.cardTitle}
+                    </div>
+                  )}
+                  {progressInfo?.percent !== undefined && (
+                    <div className="w-full max-w-xs bg-blue-100 rounded-full h-1.5 overflow-hidden mt-1">
+                      <div
+                        className="bg-[#0c66e4] h-full transition-all duration-300"
+                        style={{ width: `${progressInfo.percent}%` }}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -894,104 +1020,132 @@ export function MemberHandoverModal({
               <h3 className="text-[23px] font-bold text-[#172b4d] tracking-tight mb-1">
                 Handover complete
               </h3>
-              <p className="text-[13.5px] text-[#44546f] max-w-sm mx-auto mb-4 leading-normal">
-                {selectedCardIds.length} {selectedCardIds.length === 1 ? 'card was' : 'cards were'} successfully reassigned from {departingMember?.name} to{' '}
-                {replacementMember?.name}.
-              </p>
+              {(() => {
+                const updatedCount = executionResults ? executionResults.updated.length : selectedCardIds.length;
+                const skippedCount = executionResults ? executionResults.skipped.length : 0;
+                const failedCount = executionResults ? executionResults.failed.length : 0;
 
-              {/* From -> To Bar (Image 1) */}
-              <div className="p-3 bg-[#edf5ff] border border-blue-100/80 rounded-xl mb-3 flex items-center justify-between text-left">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="text-[11.5px] text-[#626f86] font-medium">From</span>
-                  <MemberAvatar member={departingMember} size={30} />
-                  <div className="min-w-0">
-                    <div className="text-[13px] font-bold text-[#172b4d] truncate">
-                      {departingMember?.name}
-                    </div>
-                    <div className="text-[11px] text-[#626f86] truncate">
-                      {departingMember?.email}
-                    </div>
-                  </div>
-                </div>
-                <div className="px-2 text-slate-400">
-                  <ArrowRightIcon className="w-4 h-4" />
-                </div>
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="text-[11.5px] text-[#626f86] font-medium">To</span>
-                  <MemberAvatar member={replacementMember} size={30} />
-                  <div className="min-w-0">
-                    <div className="text-[13px] font-bold text-[#172b4d] truncate">
-                      {replacementMember?.name}
-                    </div>
-                    <div className="text-[11px] text-[#626f86] truncate">
-                      {replacementMember?.email}
-                    </div>
-                  </div>
-                </div>
-              </div>
+                return (
+                  <>
+                    <p className="text-[13.5px] text-[#44546f] max-w-sm mx-auto mb-4 leading-normal">
+                      {updatedCount} {updatedCount === 1 ? 'card was' : 'cards were'} successfully reassigned from {departingMember?.name} to{' '}
+                      {replacementMember?.name}.
+                    </p>
 
-              {/* Results Breakdown Box with "View details" button (Image 1) */}
-              <div className="p-3.5 bg-[#f8fafc] border border-slate-200/80 rounded-xl mb-3.5 text-left">
-                <div className="space-y-2 text-[13px]">
-                  {/* Updated successfully */}
-                  <div className="flex items-center justify-between py-1">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-4 h-4 rounded-full bg-[#00875a] text-white flex items-center justify-center flex-shrink-0">
-                        <CheckIcon className="w-2.5 h-2.5" color="#ffffff" strokeWidth={3.5} />
+                    {/* From -> To Bar (Image 1) */}
+                    <div className="p-3 bg-[#edf5ff] border border-blue-100/80 rounded-xl mb-3 flex items-center justify-between text-left">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="text-[11.5px] text-[#626f86] font-medium">From</span>
+                        <MemberAvatar member={departingMember} size={30} />
+                        <div className="min-w-0">
+                          <div className="text-[13px] font-bold text-[#172b4d] truncate">
+                            {departingMember?.name}
+                          </div>
+                          <div className="text-[11px] text-[#626f86] truncate">
+                            {departingMember?.email}
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-semibold text-[#172b4d]">Updated successfully</div>
-                        <div className="text-[11px] text-[#626f86]">
-                          Cards reassigned to {replacementMember?.name}
+                      <div className="px-2 text-slate-400">
+                        <ArrowRightIcon className="w-4 h-4" />
+                      </div>
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="text-[11.5px] text-[#626f86] font-medium">To</span>
+                        <MemberAvatar member={replacementMember} size={30} />
+                        <div className="min-w-0">
+                          <div className="text-[13px] font-bold text-[#172b4d] truncate">
+                            {replacementMember?.name}
+                          </div>
+                          <div className="text-[11px] text-[#626f86] truncate">
+                            {replacementMember?.email}
+                          </div>
                         </div>
                       </div>
                     </div>
-                    <span className="font-bold text-[#172b4d] text-sm">{selectedCardIds.length}</span>
-                  </div>
 
-                  <div className="h-px bg-slate-200/70" />
+                    {/* Results Breakdown Box with "View details" button (Image 1) */}
+                    <div className="p-3.5 bg-[#f8fafc] border border-slate-200/80 rounded-xl mb-3.5 text-left">
+                      <div className="space-y-2 text-[13px]">
+                        {/* Updated successfully */}
+                        <div className="flex items-center justify-between py-1">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-4 h-4 rounded-full bg-[#00875a] text-white flex items-center justify-center flex-shrink-0">
+                              <CheckIcon className="w-2.5 h-2.5" color="#ffffff" strokeWidth={3.5} />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-[#172b4d]">Updated successfully</div>
+                              <div className="text-[11px] text-[#626f86]">
+                                Cards reassigned to {replacementMember?.name}
+                              </div>
+                            </div>
+                          </div>
+                          <span className="font-bold text-[#172b4d] text-sm">{updatedCount}</span>
+                        </div>
 
-                  {/* Skipped (no permission) with [View details] */}
-                  <div className="flex items-center justify-between py-1">
-                    <div className="flex items-center gap-2.5">
-                      <ClockPendingIcon className="w-4 h-4 text-[#626f86] flex-shrink-0" />
-                      <div>
-                        <div className="font-semibold text-[#172b4d]">Skipped (no permission)</div>
-                        <div className="text-[11px] text-[#626f86]">
-                          You don't have permission to edit these cards.
+                        <div className="h-px bg-slate-200/70" />
+
+                        {/* Skipped (no permission) with [View details] */}
+                        <div className="flex items-center justify-between py-1">
+                          <div className="flex items-center gap-2.5">
+                            <ClockPendingIcon className="w-4 h-4 text-[#626f86] flex-shrink-0" />
+                            <div>
+                              <div className="font-semibold text-[#172b4d]">Skipped (no permission)</div>
+                              <div className="text-[11px] text-[#626f86]">
+                                You don't have permission to edit these cards.
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="font-bold text-[#172b4d] text-sm">{skippedCount}</span>
+                            {skippedCount > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => setCompletionView('SKIPPED')}
+                                className="px-2.5 py-1 text-xs font-semibold text-[#0c66e4] bg-[#edf5ff] hover:bg-[#dbeafe] rounded transition-colors cursor-pointer"
+                              >
+                                View details
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="h-px bg-slate-200/70" />
+
+                        {/* Failed */}
+                        <div className="flex items-center justify-between py-1">
+                          <div className="flex items-center gap-2.5">
+                            <AlertCircleIcon className="w-4 h-4 text-[#626f86] flex-shrink-0" />
+                            <div>
+                              <div className="font-semibold text-[#172b4d]">Failed</div>
+                              <div className="text-[11px] text-[#626f86]">
+                                Could not update these cards.
+                              </div>
+                            </div>
+                          </div>
+                          <span className="font-bold text-[#172b4d] text-sm">{failedCount}</span>
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-bold text-[#172b4d] text-sm">0</span>
-                    </div>
-                  </div>
 
-                  <div className="h-px bg-slate-200/70" />
-
-                  {/* Failed */}
-                  <div className="flex items-center justify-between py-1">
-                    <div className="flex items-center gap-2.5">
-                      <AlertCircleIcon className="w-4 h-4 text-[#626f86] flex-shrink-0" />
-                      <div>
-                        <div className="font-semibold text-[#172b4d]">Failed</div>
-                        <div className="text-[11px] text-[#626f86]">
-                          Could not update these cards.
-                        </div>
+                    {/* Dynamic Callout Box */}
+                    {skippedCount === 0 && failedCount === 0 ? (
+                      <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl mb-5 text-left flex items-start gap-2.5">
+                        <CheckIcon className="w-4 h-4 flex-shrink-0 text-[#00875a] mt-0.5" />
+                        <p className="text-[12px] text-[#172b4d] leading-relaxed">
+                          All {updatedCount} {updatedCount === 1 ? 'card was' : 'cards were'} successfully reassigned to {replacementMember?.name}.
+                        </p>
                       </div>
-                    </div>
-                    <span className="font-bold text-[#172b4d] text-sm">0</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Success Info Box */}
-              <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl mb-5 text-left flex items-start gap-2.5">
-                <CheckIcon className="w-4 h-4 flex-shrink-0 text-[#00875a] mt-0.5" />
-                <p className="text-[12px] text-[#172b4d] leading-relaxed">
-                  All {selectedCardIds.length} {selectedCardIds.length === 1 ? 'card was' : 'cards were'} successfully reassigned to {replacementMember?.name}.
-                </p>
-              </div>
+                    ) : (
+                      <div className="p-3 bg-[#fff8e6] border border-[#ffecb5] rounded-xl mb-5 text-left flex items-start gap-2.5">
+                        <WarningTriangleIcon className="w-4 h-4 flex-shrink-0 text-amber-700 mt-0.5" />
+                        <p className="text-[12px] text-[#172b4d] leading-relaxed">
+                          {skippedCount} {skippedCount === 1 ? 'card was' : 'cards were'} skipped because you don't have permission to edit them.
+                        </p>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
 
               {/* Primary Buttons */}
               <div className="flex flex-col items-center gap-3">
@@ -1020,7 +1174,7 @@ export function MemberHandoverModal({
             <div className="animate-fadeIn">
               <div className="mb-3.5">
                 <h3 className="text-[22px] font-bold text-[#172b4d] tracking-tight mb-1">
-                  Skipped cards (3)
+                  Skipped cards ({skippedCardsSource.length || (executionResults ? 0 : 3)})
                 </h3>
                 <p className="text-[13.5px] text-[#44546f] leading-normal">
                   These cards could not be reassigned. You can try again after
@@ -1047,7 +1201,7 @@ export function MemberHandoverModal({
                 </div>
 
                 <div className="divide-y divide-slate-100 text-[12px]">
-                  {SKIPPED_CARDS_LIST.map((item) => {
+                  {((skippedCardsSource.length > 0 || executionResults) ? skippedCardsSource : SKIPPED_CARDS_LIST).map((item) => {
                     const status = retryStatus[item.id];
                     return (
                       <div

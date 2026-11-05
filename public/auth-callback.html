@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Trello Authorization Callback</title>
+    <script src="https://p.trellocdn.com/power-up.min.js"></script>
+  </head>
+  <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f4f5f7; color: #172b4d;">
+    <div style="background: white; padding: 28px 36px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; max-width: 420px;">
+      <div id="status-icon" style="width: 48px; height: 48px; margin: 0 auto 16px; border-radius: 50%; background: #0c66e4; display: flex; align-items: center; justify-content: center; color: white;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      <h3 id="status-title" style="margin: 0 0 8px; font-size: 18px; color: #172b4d;">Connected with Trello!</h3>
+      <p id="status-desc" style="color: #626f86; font-size: 13.5px; line-height: 1.5; margin: 0 0 16px;">Your authorization token has been saved. You can close this tab and return to your board.</p>
+      <button onclick="window.close()" style="background: #0c66e4; color: white; border: none; padding: 8px 20px; font-size: 13.5px; font-weight: 600; border-radius: 6px; cursor: pointer;">Close Window</button>
+    </div>
+
+    <script>
+      /* global window, TrelloPowerUp */
+      (function() {
+        var hash = window.location.hash;
+        var token = '';
+        if (hash && hash.indexOf('token=') !== -1) {
+          token = hash.split('token=')[1].split('&')[0];
+        }
+
+        if (token) {
+          try {
+            localStorage.setItem('trello_token', token);
+          } catch (e) {}
+
+          if (typeof window !== 'undefined' && window.TrelloPowerUp) {
+            try {
+              var t = window.TrelloPowerUp.iframe();
+              t.set('member', 'private', 'trello_token', token);
+            } catch (e) {}
+          }
+        }
+      })();
+    </script>
+  </body>
+</html>
