@@ -61,33 +61,75 @@ export function TrelloConfigModal({ isOpen, onClose, onConnected }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn text-[#172b4d]">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden">
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 9999,
+        backgroundColor: 'rgba(9, 30, 66, 0.65)',
+        backdropFilter: 'blur(3px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px',
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '460px',
+          backgroundColor: '#ffffff',
+          borderRadius: '12px',
+          boxShadow: '0 20px 45px -10px rgba(9, 30, 66, 0.35), 0 0 1px 1px rgba(9, 30, 66, 0.15)',
+          border: '1px solid #dfe1e6',
+          overflow: 'hidden',
+          color: '#172b4d',
+        }}
+      >
         {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div
+          style={{
+            padding: '16px 20px',
+            borderBottom: '1px solid #ebecf0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: '#ffffff',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <TrelloIcon className="w-5 h-5" color="#0c66e4" />
-            <h3 className="text-base font-bold text-[#172b4d]">
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#172b4d' }}>
               Connect Trello for Live Reassignment
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-slate-400 hover:text-slate-700 rounded cursor-pointer"
+            style={{
+              padding: '4px',
+              color: '#626f86',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              background: 'none',
+              border: 'none',
+            }}
           >
             <CloseIcon className="w-4 h-4" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-5 space-y-4 text-xs">
-          <p className="text-[#44546f] leading-normal">
+        <div style={{ padding: '20px', backgroundColor: '#ffffff', fontSize: '12px' }}>
+          <p style={{ color: '#44546f', lineHeight: 1.5, margin: '0 0 16px' }}>
             Trello board ke real cards se members ko add aur remove karne ke liye Trello 1-time authorization allow karta hai:
           </p>
 
           {/* API Key */}
-          <div>
-            <label className="block font-semibold text-[#172b4d] mb-1">
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', fontWeight: 600, color: '#172b4d', marginBottom: '6px' }}>
               1. Trello Power-Up API Key
             </label>
             <input
@@ -95,14 +137,25 @@ export function TrelloConfigModal({ isOpen, onClose, onConnected }) {
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="e.g. 5d89f72b9a384..."
-              className="w-full px-3 py-2 border border-slate-200 rounded-md font-mono text-xs focus:outline-none focus:border-[#0c66e4]"
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                border: '1px solid #dfe1e6',
+                borderRadius: '6px',
+                fontFamily: 'monospace',
+                fontSize: '12px',
+                outline: 'none',
+                boxSizing: 'border-box',
+                backgroundColor: '#ffffff',
+                color: '#172b4d',
+              }}
             />
-            <span className="text-[11px] text-slate-500 mt-1 block">
+            <span style={{ fontSize: '11px', color: '#626f86', marginTop: '6px', display: 'block', lineHeight: 1.4 }}>
               <a
                 href="https://trello.com/power-ups/admin"
                 target="_blank"
                 rel="noreferrer"
-                className="text-[#0c66e4] font-semibold hover:underline"
+                style={{ color: '#0c66e4', fontWeight: 600, textDecoration: 'underline' }}
               >
                 👉 trello.com/power-ups/admin
               </a>{' '}
@@ -111,8 +164,8 @@ export function TrelloConfigModal({ isOpen, onClose, onConnected }) {
           </div>
 
           {/* User Token */}
-          <div>
-            <label className="block font-semibold text-[#172b4d] mb-1">
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', fontWeight: 600, color: '#172b4d', marginBottom: '6px' }}>
               2. Trello User Token
             </label>
             <input
@@ -120,29 +173,53 @@ export function TrelloConfigModal({ isOpen, onClose, onConnected }) {
               value={token}
               onChange={(e) => setToken(e.target.value)}
               placeholder="ATTA... or your personal token"
-              className="w-full px-3 py-2 border border-slate-200 rounded-md font-mono text-xs focus:outline-none focus:border-[#0c66e4]"
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                border: '1px solid #dfe1e6',
+                borderRadius: '6px',
+                fontFamily: 'monospace',
+                fontSize: '12px',
+                outline: 'none',
+                boxSizing: 'border-box',
+                backgroundColor: '#ffffff',
+                color: '#172b4d',
+              }}
             />
             {apiKey ? (
-              <span className="text-[11px] text-slate-500 mt-1 block">
+              <span style={{ fontSize: '11px', color: '#626f86', marginTop: '6px', display: 'block' }}>
                 <a
                   href={`https://trello.com/1/authorize?expiration=never&name=Member+Handover&scope=read,write&response_type=token&key=${apiKey.trim()}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[#0c66e4] font-semibold hover:underline"
+                  style={{ color: '#0c66e4', fontWeight: 600, textDecoration: 'underline' }}
                 >
                   👉 Click here to generate 1-click Trello Token
                 </a>
               </span>
             ) : (
-              <span className="text-[11px] text-slate-400 mt-1 block">
-                (API Key enter karne ke baad Token generate karne ka direct link yahan aayega)
+              <span style={{ fontSize: '11px', color: '#8c9bab', marginTop: '6px', display: 'block' }}>
+                (Pehle API Key dalein, fir Token generate karne ka 1-click link aa jayega)
               </span>
             )}
           </div>
 
           {/* Success Notification */}
           {successUser && (
-            <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-md text-[11.5px] flex items-center gap-2">
+            <div
+              style={{
+                padding: '10px 12px',
+                backgroundColor: '#e3fcef',
+                border: '1px solid #abf5d1',
+                color: '#006644',
+                borderRadius: '6px',
+                fontSize: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '14px',
+              }}
+            >
               <CheckIcon className="w-4 h-4 text-emerald-600" />
               <span>
                 Connected as <b>@{successUser.username}</b> ({successUser.fullName})!
@@ -152,17 +229,41 @@ export function TrelloConfigModal({ isOpen, onClose, onConnected }) {
 
           {/* Error Message */}
           {errorMessage && (
-            <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-md text-[11.5px]">
+            <div
+              style={{
+                padding: '10px 12px',
+                backgroundColor: '#ffebe6',
+                border: '1px solid #ffbdad',
+                color: '#bf2600',
+                borderRadius: '6px',
+                fontSize: '12px',
+                marginBottom: '14px',
+              }}
+            >
               {errorMessage}
             </div>
           )}
 
           {/* Action buttons */}
-          <div className="pt-2 flex items-center justify-between border-t border-slate-100">
+          <div
+            style={{
+              paddingTop: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              borderTop: '1px solid #ebecf0',
+            }}
+          >
             <button
               type="button"
               onClick={handleDisconnect}
-              className="text-slate-500 hover:text-rose-600 text-[11.5px] cursor-pointer"
+              style={{
+                color: '#626f86',
+                fontSize: '12px',
+                cursor: 'pointer',
+                background: 'none',
+                border: 'none',
+              }}
             >
               Disconnect
             </button>
@@ -171,7 +272,18 @@ export function TrelloConfigModal({ isOpen, onClose, onConnected }) {
               type="button"
               onClick={handleSaveAndConnect}
               disabled={isLoading || !apiKey.trim() || !token.trim()}
-              className="px-4 py-2 bg-[#0c66e4] hover:bg-[#0055cc] text-white font-semibold rounded-md shadow-xs transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2"
+              style={{
+                padding: '8px 16px',
+                backgroundColor: isLoading || !apiKey.trim() || !token.trim() ? '#b3d4ff' : '#0c66e4',
+                color: '#ffffff',
+                fontWeight: 600,
+                borderRadius: '6px',
+                border: 'none',
+                cursor: isLoading || !apiKey.trim() || !token.trim() ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
             >
               {isLoading && (
                 <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
