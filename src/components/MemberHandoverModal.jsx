@@ -527,7 +527,7 @@ export function MemberHandoverModal({
         </div>
 
         {/* ================= MODAL BODY ================= */}
-        <div className="px-6 py-5 flex-1 overflow-y-auto max-h-[490px]">
+        <div className="px-6 sm:px-8 py-5 flex-1 overflow-y-auto max-h-[calc(100vh-140px)]">
           {/* ========================================================================= */}
           {/* SCREEN 1: SELECT DEPARTING MEMBER                                         */}
           {/* ========================================================================= */}
@@ -558,7 +558,7 @@ export function MemberHandoverModal({
               </div>
 
               {/* Members List */}
-              <div className="space-y-0.5 max-h-[300px] overflow-y-auto pr-1">
+              <div className="space-y-0.5 overflow-y-auto pr-1">
                 {filteredStep1Members.map((member) => {
                   const isSelected = selectedDepartingId === member.id;
                   return (
@@ -568,10 +568,10 @@ export function MemberHandoverModal({
                         setSelectedDepartingId(member.id);
                         if (onSelectDepartingMember) onSelectDepartingMember(member.id);
                       }}
-                      className={`flex items-center gap-3.5 px-3 py-2.5 rounded-lg cursor-pointer transition-all border ${
+                      className={`flex items-center gap-3.5 px-3.5 py-3 rounded-lg cursor-pointer transition-all ${
                         isSelected
-                          ? 'bg-[#e9f2ff] border-blue-200/60 shadow-xs'
-                          : 'bg-white border-transparent hover:bg-slate-50 border-b-slate-100'
+                          ? 'bg-[#deebff]'
+                          : 'bg-white hover:bg-[#f7f8f9] border-b border-[#f1f2f4]'
                       }`}
                     >
                       {/* Radio button */}
@@ -594,16 +594,9 @@ export function MemberHandoverModal({
 
                       {/* Name & Email */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[14px] font-semibold text-[#172b4d] truncate">
-                            {member.name}
-                          </span>
-                          {member.cardsCount !== undefined && (
-                            <span className="text-[11px] px-1.5 py-0.5 rounded bg-slate-100 text-[#44546f] font-medium">
-                              {member.cardsCount} cards
-                            </span>
-                          )}
-                        </div>
+                        <span className="text-[14px] font-semibold text-[#172b4d] truncate block">
+                          {member.name}
+                        </span>
                         <div className="text-[12.5px] text-[#626f86] truncate">
                           {member.email}
                         </div>
@@ -648,17 +641,17 @@ export function MemberHandoverModal({
               </div>
 
               {/* Members List */}
-              <div className="space-y-0.5 max-h-[300px] overflow-y-auto pr-1">
+              <div className="space-y-0.5 overflow-y-auto pr-1">
                 {filteredStep2Members.map((member) => {
                   const isSelected = selectedReplacementId === member.id;
                   return (
                     <div
                       key={member.id}
                       onClick={() => setSelectedReplacementId(member.id)}
-                      className={`flex items-center gap-3.5 px-3 py-2.5 rounded-lg cursor-pointer transition-all border ${
+                      className={`flex items-center gap-3.5 px-3.5 py-3 rounded-lg cursor-pointer transition-all ${
                         isSelected
-                          ? 'bg-[#e9f2ff] border-blue-200/60 shadow-xs'
-                          : 'bg-white border-transparent hover:bg-slate-50 border-b-slate-100'
+                          ? 'bg-[#deebff]'
+                          : 'bg-white hover:bg-[#f7f8f9] border-b border-[#f1f2f4]'
                       }`}
                     >
                       {/* Radio button */}
@@ -783,7 +776,7 @@ export function MemberHandoverModal({
 
                   {/* Table */}
                   <div className="border border-slate-200 rounded-lg overflow-hidden bg-white mb-2">
-                    <div className="grid grid-cols-[36px_1fr_85px_85px_105px] items-center px-2 py-2 bg-slate-50 border-b border-slate-200 text-[11.5px] font-bold text-[#626f86]">
+                    <div className="grid grid-cols-[36px_2.5fr_1.5fr_1.5fr_1.5fr] items-center px-3 py-2.5 bg-white border-b border-[#dfe1e6] text-[12px] font-bold text-[#626f86]">
                       <div className="flex items-center justify-center">
                         <input
                           type="checkbox"
@@ -801,14 +794,14 @@ export function MemberHandoverModal({
                       <div>Current assignee</div>
                     </div>
 
-                    <div className="max-h-[220px] overflow-y-auto divide-y divide-slate-100 text-[12.5px]">
+                    <div className="max-h-[360px] overflow-y-auto divide-y divide-slate-100 text-[13px]">
                       {filteredCards.map((card) => {
                         const isChecked = selectedCardIds.includes(card.id);
                         return (
                           <div
                             key={card.id}
                             onClick={() => handleToggleCard(card.id)}
-                            className={`grid grid-cols-[36px_1fr_85px_85px_105px] items-center px-2 py-2 cursor-pointer transition-colors ${
+                            className={`grid grid-cols-[36px_2.5fr_1.5fr_1.5fr_1.5fr] items-center px-3 py-2.5 cursor-pointer transition-colors ${
                               isChecked
                                 ? 'bg-white hover:bg-slate-50'
                                 : 'bg-slate-50/50 text-slate-400 opacity-60'
@@ -823,14 +816,14 @@ export function MemberHandoverModal({
                                 className="w-4 h-4 rounded text-[#0c66e4] focus:ring-0 cursor-pointer"
                               />
                             </div>
-                            <div className="font-medium text-[#172b4d] truncate pr-2">
+                            <div className="font-semibold text-[#172b4d] truncate pr-2">
                               {card.title}
                             </div>
                             <div className="text-[#626f86] truncate">{card.board}</div>
                             <div className="text-[#626f86] truncate">{card.list}</div>
-                            <div className="flex items-center gap-1.5 min-w-0">
+                            <div className="flex items-center gap-2 min-w-0">
                               <MemberAvatar member={departingMember} size={20} />
-                              <span className="text-[#172b4d] truncate text-[11.5px]">
+                              <span className="text-[#172b4d] truncate text-[12px] font-medium">
                                 {departingMember?.name}
                               </span>
                             </div>

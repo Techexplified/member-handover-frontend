@@ -139,7 +139,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#f4f5f7] flex items-center justify-center p-2 sm:p-4 font-sans">
+    <div className="min-h-screen w-full bg-white flex flex-col font-sans">
       <MemberHandoverModal
         isOpen={true}
         isInline={true}
