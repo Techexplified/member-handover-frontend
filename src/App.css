@@ -68,6 +68,56 @@
   box-sizing: border-box !important;
 }
 
+/* Search Input Container & Icon */
+.search-input-wrapper {
+  position: relative !important;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  margin-bottom: 14px !important;
+}
+
+.search-input-icon {
+  position: absolute !important;
+  left: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  pointer-events: none !important;
+  width: 16px !important;
+  height: 16px !important;
+  color: #626f86 !important;
+  z-index: 2 !important;
+}
+
+.search-input-field {
+  width: 100% !important;
+  height: 38px !important;
+  padding-left: 36px !important;
+  padding-right: 12px !important;
+  font-size: 13.5px !important;
+  line-height: normal !important;
+  background-color: #ffffff !important;
+  border: 1px solid #dfe1e6 !important;
+  border-radius: 6px !important;
+  color: #172b4d !important;
+  box-sizing: border-box !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.search-input-field::placeholder {
+  color: #626f86 !important;
+  opacity: 1 !important;
+}
+
+.search-input-field:focus {
+  outline: none !important;
+  border-color: #0c66e4 !important;
+  box-shadow: 0 0 0 2px rgba(12, 102, 228, 0.2) !important;
+}
+
 /* Review Cards Data Table */
 .card-table-grid {
   display: grid !important;

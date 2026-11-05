@@ -633,16 +633,16 @@ export function MemberHandoverModal({
               </div>
 
               {/* Step 1 Departing Member Search Input */}
-              <div className="relative mb-3.5">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <SearchIcon className="w-4 h-4" color="#626f86" />
+              <div className="search-input-wrapper">
+                <div className="search-input-icon">
+                  <SearchIcon style={{ width: '16px', height: '16px' }} color="#626f86" />
                 </div>
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search for a member..."
-                  className="w-full pl-9 pr-3.5 py-2 text-[14px] bg-white border border-[#dfe1e6] rounded-md text-[#172b4d] placeholder-[#626f86] focus:outline-none focus:border-[#0c66e4] focus:ring-2 focus:ring-blue-100 transition-all"
+                  className="search-input-field"
                 />
               </div>
 
@@ -708,16 +708,16 @@ export function MemberHandoverModal({
               </div>
 
               {/* Step 2 Search input */}
-              <div className="relative mb-3.5">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <SearchIcon className="w-4 h-4" color="#626f86" />
+              <div className="search-input-wrapper">
+                <div className="search-input-icon">
+                  <SearchIcon style={{ width: '16px', height: '16px' }} color="#626f86" />
                 </div>
                 <input
                   type="text"
                   value={replacementSearchQuery}
                   onChange={(e) => setReplacementSearchQuery(e.target.value)}
                   placeholder="Search for a member..."
-                  className="w-full pl-9 pr-3.5 py-2 text-[14px] bg-white border border-[#dfe1e6] rounded-md text-[#172b4d] placeholder-[#626f86] focus:outline-none focus:border-[#0c66e4] focus:ring-2 focus:ring-blue-100 transition-all"
+                  className="search-input-field"
                 />
               </div>
 
@@ -834,16 +834,17 @@ export function MemberHandoverModal({
                   </div>
 
                   {/* Search bar */}
-                  <div className="relative mb-2.5">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <SearchIcon className="w-3.5 h-3.5" color="#626f86" />
+                  <div className="search-input-wrapper" style={{ marginBottom: '10px' }}>
+                    <div className="search-input-icon">
+                      <SearchIcon style={{ width: '15px', height: '15px' }} color="#626f86" />
                     </div>
                     <input
                       type="text"
                       value={cardSearchQuery}
                       onChange={(e) => setCardSearchQuery(e.target.value)}
                       placeholder="Search cards or boards..."
-                      className="w-full pl-8 pr-3 py-1.5 text-[13px] bg-white border border-[#dfe1e6] rounded-md text-[#172b4d] placeholder-[#626f86] focus:outline-none focus:border-[#0c66e4]"
+                      className="search-input-field"
+                      style={{ height: '34px', fontSize: '13px' }}
                     />
                   </div>
 
@@ -1335,9 +1336,9 @@ export function MemberHandoverModal({
               {/* Filters Bar: Search, Board, List (Image 4) */}
               <div className="flex items-center gap-2 mb-3">
                 {/* Search input */}
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                    <SearchIcon className="w-3.5 h-3.5" color="#626f86" />
+                <div className="search-input-wrapper" style={{ flex: 1, marginBottom: 0 }}>
+                  <div className="search-input-icon" style={{ left: '10px' }}>
+                    <SearchIcon style={{ width: '14px', height: '14px' }} color="#626f86" />
                   </div>
                   <input
                     type="text"
@@ -1347,7 +1348,8 @@ export function MemberHandoverModal({
                       setUpdatedCardsPage(1);
                     }}
                     placeholder="Search cards by name..."
-                    className="w-full pl-8 pr-2.5 py-1.5 text-[12.5px] bg-white border border-[#dfe1e6] rounded-md text-[#172b4d] placeholder-[#626f86] focus:outline-none focus:border-[#0c66e4]"
+                    className="search-input-field"
+                    style={{ height: '32px', fontSize: '12.5px', paddingLeft: '30px' }}
                   />
                 </div>
 
