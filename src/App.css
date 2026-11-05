@@ -1,5 +1,24 @@
 /* App.css - Trello and Member Handover Design System */
 
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden !important;
+  background-color: #ffffff;
+}
+
+/* Hide all default scrollbars / slider */
+::-webkit-scrollbar {
+  width: 0px !important;
+  height: 0px !important;
+  display: none !important;
+}
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
 /* Layout & Flex Utilities */
 .flex { display: flex; }
 .inline-flex { display: inline-flex; }
@@ -55,7 +74,8 @@
 .handover-modal-card {
   width: 100% !important;
   max-width: 100% !important;
-  min-height: 100vh !important;
+  height: 100% !important;
+  max-height: 100vh !important;
   background-color: #ffffff !important;
   border-radius: 0 !important;
   border: none !important;
@@ -65,6 +85,48 @@
   overflow: hidden !important;
   color: #172b4d !important;
   margin: 0 !important;
+}
+
+/* Search Input & Icon */
+.search-icon-container {
+  position: absolute !important;
+  left: 10px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  pointer-events: none !important;
+  width: 16px !important;
+  height: 16px !important;
+  z-index: 2 !important;
+}
+
+.search-input-field {
+  width: 100% !important;
+  padding-left: 33px !important;
+  padding-right: 12px !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  border: 1px solid #dfe1e6 !important;
+  border-radius: 6px !important;
+  color: #172b4d !important;
+  background-color: #ffffff !important;
+  box-sizing: border-box !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.search-input-field::placeholder {
+  color: #626f86 !important;
+  opacity: 1 !important;
+}
+
+.search-input-field:focus {
+  outline: none !important;
+  border-color: #0c66e4 !important;
+  box-shadow: 0 0 0 2px rgba(12, 102, 228, 0.2) !important;
 }
 
 /* Review Cards Data Table */

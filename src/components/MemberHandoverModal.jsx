@@ -334,13 +334,15 @@ export function MemberHandoverModal({
 
   if (!isOpen) return null;
 
+  const isInsideTrello = typeof window !== 'undefined' && Boolean(window.TrelloPowerUp);
+
   const cardContent = (
     <div className="handover-modal-card transition-all">
       {/* ================= MODAL HEADER ================= */}
-      <div className="flex items-center justify-between px-6 pt-5 pb-3">
-        <div className="flex items-center gap-2.5">
-          <UsersIcon className="w-5 h-5" color="#0c66e4" />
-          <h2 className="text-[19px] font-bold tracking-tight text-[#172b4d]">
+      <div className="flex items-center justify-between px-5 pt-3 pb-1.5">
+        <div className="flex items-center gap-2">
+          <UsersIcon className="w-4 h-4" color="#0c66e4" />
+          <h2 className="text-[17px] font-bold tracking-tight text-[#172b4d]">
             Member Handover
           </h2>
         </div>
@@ -350,7 +352,7 @@ export function MemberHandoverModal({
               type="button"
               onClick={onOpenConfig}
               title="Trello API connected. Click to edit."
-              className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-full transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-full transition-colors cursor-pointer"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               <span>Live Board Sync</span>
@@ -360,23 +362,25 @@ export function MemberHandoverModal({
               type="button"
               onClick={onOpenConfig}
               title="Click to enter Trello API Key & Token for live updates"
-              className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-full transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-full transition-colors cursor-pointer"
             >
               <span>🔑 Connect API Key</span>
             </button>
           )}
-          <button
-            onClick={handleCloseDialog}
-            aria-label="Close dialog"
-            className="p-1 rounded-md text-[#626f86] hover:text-[#172b4d] hover:bg-slate-100 transition-colors focus:outline-none cursor-pointer"
-          >
-            <CloseIcon className="w-5 h-5" />
-          </button>
+          {!isInsideTrello && (
+            <button
+              onClick={handleCloseDialog}
+              aria-label="Close dialog"
+              className="p-1 rounded-md text-[#626f86] hover:text-[#172b4d] hover:bg-slate-100 transition-colors focus:outline-none cursor-pointer"
+            >
+              <CloseIcon className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
         {/* ================= STEPPER PROGRESS BAR ================= */}
-        <div className="px-6 pt-2 pb-3 bg-white">
+        <div className="px-5 pt-1 pb-2 bg-white">
           <div className="relative flex items-center justify-between">
             {/* Background line connecting all steps */}
             <div
@@ -527,33 +531,33 @@ export function MemberHandoverModal({
         </div>
 
         {/* ================= MODAL BODY ================= */}
-        <div className="px-6 sm:px-8 py-5 flex-1 overflow-y-auto max-h-[500px]">
+        <div className="px-5 py-3 flex-1 overflow-y-auto max-h-[calc(100vh-115px)]">
           {/* ========================================================================= */}
           {/* SCREEN 1: SELECT DEPARTING MEMBER                                         */}
           {/* ========================================================================= */}
           {currentStep === 1 && !isCompleted && (
             <div>
-              <div className="mb-4">
-                <h3 className="text-[22px] font-bold text-[#172b4d] tracking-tight mb-1">
+              <div className="mb-2.5">
+                <h3 className="text-[18px] font-bold text-[#172b4d] tracking-tight mb-0.5">
                   Select departing member
                 </h3>
-                <p className="text-[13.5px] text-[#44546f] leading-normal">
+                <p className="text-[12.5px] text-[#44546f] leading-snug">
                   Choose the team member whose card assignments you want to
                   reassign across your boards.
                 </p>
               </div>
 
               {/* Step 1 Departing Member Search Input */}
-              <div className="relative mb-3.5">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <SearchIcon className="w-4 h-4" color="#626f86" />
+              <div className="relative mb-2.5">
+                <div className="search-icon-container">
+                  <SearchIcon size={15} color="#626f86" />
                 </div>
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search for a member..."
-                  className="w-full pl-9 pr-3.5 py-2 text-[14px] bg-white border border-[#dfe1e6] rounded-md text-[#172b4d] placeholder-[#626f86] focus:outline-none focus:border-[#0c66e4] focus:ring-2 focus:ring-blue-100 transition-all"
+                  className="search-input-field"
                 />
               </div>
 
@@ -568,7 +572,7 @@ export function MemberHandoverModal({
                         setSelectedDepartingId(member.id);
                         if (onSelectDepartingMember) onSelectDepartingMember(member.id);
                       }}
-                      className={`flex items-center gap-3.5 px-3.5 py-3 rounded-lg cursor-pointer transition-all ${
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all ${
                         isSelected
                           ? 'bg-[#deebff]'
                           : 'bg-white hover:bg-[#f4f5f7]'
@@ -582,14 +586,14 @@ export function MemberHandoverModal({
                       </div>
 
                       {/* Avatar */}
-                      <MemberAvatar member={member} size={38} />
+                      <MemberAvatar member={member} size={34} />
 
                       {/* Name & Email */}
                       <div className="flex-1 min-w-0">
-                        <span className="text-[14px] font-semibold text-[#172b4d] truncate block">
+                        <span className="text-[13.5px] font-semibold text-[#172b4d] truncate block">
                           {member.name}
                         </span>
-                        <div className="text-[12.5px] text-[#626f86] truncate">
+                        <div className="text-[12px] text-[#626f86] truncate">
                           {member.email}
                         </div>
                       </div>
@@ -605,11 +609,11 @@ export function MemberHandoverModal({
           {/* ========================================================================= */}
           {currentStep === 2 && !isCompleted && (
             <div>
-              <div className="mb-4">
-                <h3 className="text-[22px] font-bold text-[#172b4d] tracking-tight mb-1">
+              <div className="mb-2.5">
+                <h3 className="text-[18px] font-bold text-[#172b4d] tracking-tight mb-0.5">
                   Choose replacement member
                 </h3>
-                <p className="text-[13.5px] text-[#44546f] leading-normal">
+                <p className="text-[12.5px] text-[#44546f] leading-snug">
                   Select the team member who will take ownership of the cards from{' '}
                   <span className="font-semibold text-[#172b4d]">
                     {departingMember?.name}
@@ -619,16 +623,16 @@ export function MemberHandoverModal({
               </div>
 
               {/* Step 2 Search input */}
-              <div className="relative mb-3.5">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <SearchIcon className="w-4 h-4" color="#626f86" />
+              <div className="relative mb-2.5">
+                <div className="search-icon-container">
+                  <SearchIcon size={15} color="#626f86" />
                 </div>
                 <input
                   type="text"
                   value={replacementSearchQuery}
                   onChange={(e) => setReplacementSearchQuery(e.target.value)}
                   placeholder="Search for a member..."
-                  className="w-full pl-9 pr-3.5 py-2 text-[14px] bg-white border border-[#dfe1e6] rounded-md text-[#172b4d] placeholder-[#626f86] focus:outline-none focus:border-[#0c66e4] focus:ring-2 focus:ring-blue-100 transition-all"
+                  className="search-input-field"
                 />
               </div>
 
@@ -640,7 +644,7 @@ export function MemberHandoverModal({
                     <div
                       key={member.id}
                       onClick={() => setSelectedReplacementId(member.id)}
-                      className={`flex items-center gap-3.5 px-3.5 py-3 rounded-lg cursor-pointer transition-all ${
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all ${
                         isSelected
                           ? 'bg-[#deebff]'
                           : 'bg-white hover:bg-[#f4f5f7]'
@@ -654,14 +658,14 @@ export function MemberHandoverModal({
                       </div>
 
                       {/* Avatar */}
-                      <MemberAvatar member={member} size={38} />
+                      <MemberAvatar member={member} size={34} />
 
                       {/* Name & Email */}
                       <div className="flex-1 min-w-0">
-                        <span className="text-[14px] font-semibold text-[#172b4d] truncate block">
+                        <span className="text-[13.5px] font-semibold text-[#172b4d] truncate block">
                           {member.name}
                         </span>
-                        <div className="text-[12.5px] text-[#626f86] truncate">
+                        <div className="text-[12px] text-[#626f86] truncate">
                           {member.email}
                         </div>
                       </div>
@@ -702,11 +706,11 @@ export function MemberHandoverModal({
               ) : (
                 /* Review table */
                 <div>
-                  <div className="mb-3">
-                    <h3 className="text-[22px] font-bold text-[#172b4d] tracking-tight mb-1">
+                  <div className="mb-2">
+                    <h3 className="text-[18px] font-bold text-[#172b4d] tracking-tight mb-0.5">
                       Review cards to reassign
                     </h3>
-                    <p className="text-[13.5px] text-[#44546f] leading-normal">
+                    <p className="text-[12.5px] text-[#44546f] leading-snug">
                       We found {departingCards.length} cards assigned to{' '}
                       {departingMember?.name} across {uniqueBoards.length} boards. Review
                       the list below before making changes.
@@ -714,12 +718,12 @@ export function MemberHandoverModal({
                   </div>
 
                   {/* Mini From -> To Bar */}
-                  <div className="p-3 bg-[#edf5ff] border border-blue-100/80 rounded-xl mb-3 flex items-center justify-between">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="text-[11.5px] text-[#626f86] font-medium">From</span>
-                      <MemberAvatar member={departingMember} size={30} />
+                  <div className="p-2.5 bg-[#edf5ff] border border-blue-100/80 rounded-lg mb-2.5 flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-[11px] text-[#626f86] font-medium">From</span>
+                      <MemberAvatar member={departingMember} size={28} />
                       <div className="min-w-0">
-                        <div className="text-[13px] font-bold text-[#172b4d] truncate">
+                        <div className="text-[12.5px] font-bold text-[#172b4d] truncate">
                           {departingMember?.name}
                         </div>
                         <div className="text-[11px] text-[#626f86] truncate">
@@ -727,14 +731,14 @@ export function MemberHandoverModal({
                         </div>
                       </div>
                     </div>
-                    <div className="px-2 text-slate-400">
-                      <ArrowRightIcon className="w-4 h-4" />
+                    <div className="px-1.5 text-slate-400">
+                      <ArrowRightIcon className="w-3.5 h-3.5" />
                     </div>
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="text-[11.5px] text-[#626f86] font-medium">To</span>
-                      <MemberAvatar member={replacementMember} size={30} />
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-[11px] text-[#626f86] font-medium">To</span>
+                      <MemberAvatar member={replacementMember} size={28} />
                       <div className="min-w-0">
-                        <div className="text-[13px] font-bold text-[#172b4d] truncate">
+                        <div className="text-[12.5px] font-bold text-[#172b4d] truncate">
                           {replacementMember?.name}
                         </div>
                         <div className="text-[11px] text-[#626f86] truncate">
@@ -745,16 +749,16 @@ export function MemberHandoverModal({
                   </div>
 
                   {/* Search bar */}
-                  <div className="relative mb-2.5">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <SearchIcon className="w-3.5 h-3.5" color="#626f86" />
+                  <div className="relative" style={{ marginBottom: '14px' }}>
+                    <div className="search-icon-container">
+                      <SearchIcon size={15} color="#626f86" />
                     </div>
                     <input
                       type="text"
                       value={cardSearchQuery}
                       onChange={(e) => setCardSearchQuery(e.target.value)}
                       placeholder="Search cards or boards..."
-                      className="w-full pl-8 pr-3 py-1.5 text-[13px] bg-white border border-[#dfe1e6] rounded-md text-[#172b4d] placeholder-[#626f86] focus:outline-none focus:border-[#0c66e4]"
+                      className="search-input-field"
                     />
                   </div>
 
@@ -778,7 +782,7 @@ export function MemberHandoverModal({
                       <div>Current assignee</div>
                     </div>
 
-                    <div className="max-h-[300px] overflow-y-auto">
+                    <div className="max-h-[220px] overflow-y-auto">
                       {filteredCards.map((card) => {
                         const isChecked = selectedCardIds.includes(card.id);
                         return (
@@ -847,22 +851,22 @@ export function MemberHandoverModal({
           {/* ========================================================================= */}
           {currentStep === 4 && !isCompleted && (
             <div>
-              <div className="mb-4">
-                <h3 className="text-[22px] font-bold text-[#172b4d] tracking-tight mb-1">
+              <div className="mb-2">
+                <h3 className="text-[18px] font-bold text-[#172b4d] tracking-tight mb-0.5">
                   Confirm handover
                 </h3>
-                <p className="text-[13.5px] text-[#44546f] leading-normal">
+                <p className="text-[12.5px] text-[#44546f] leading-snug">
                   Please review the details below before reassigning the cards.
                 </p>
               </div>
 
               {/* From -> To Bar */}
-              <div className="p-3 bg-[#edf5ff] border border-blue-100/80 rounded-xl mb-3.5 flex items-center justify-between">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="text-[11.5px] text-[#626f86] font-medium">From</span>
-                  <MemberAvatar member={departingMember} size={32} />
+              <div className="p-2.5 bg-[#edf5ff] border border-blue-100/80 rounded-lg mb-2.5 flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-[11px] text-[#626f86] font-medium">From</span>
+                  <MemberAvatar member={departingMember} size={28} />
                   <div className="min-w-0">
-                    <div className="text-[13px] font-bold text-[#172b4d] truncate">
+                    <div className="text-[12.5px] font-bold text-[#172b4d] truncate">
                       {departingMember?.name}
                     </div>
                     <div className="text-[11px] text-[#626f86] truncate">
@@ -870,14 +874,14 @@ export function MemberHandoverModal({
                     </div>
                   </div>
                 </div>
-                <div className="px-2 text-slate-400">
-                  <ArrowRightIcon className="w-4 h-4" />
+                <div className="px-1.5 text-slate-400">
+                  <ArrowRightIcon className="w-3.5 h-3.5" />
                 </div>
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="text-[11.5px] text-[#626f86] font-medium">To</span>
-                  <MemberAvatar member={replacementMember} size={32} />
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-[11px] text-[#626f86] font-medium">To</span>
+                  <MemberAvatar member={replacementMember} size={28} />
                   <div className="min-w-0">
-                    <div className="text-[13px] font-bold text-[#172b4d] truncate">
+                    <div className="text-[12.5px] font-bold text-[#172b4d] truncate">
                       {replacementMember?.name}
                     </div>
                     <div className="text-[11px] text-[#626f86] truncate">
@@ -888,31 +892,31 @@ export function MemberHandoverModal({
               </div>
 
               {/* Cards to be reassigned stats box */}
-              <div className="p-3.5 bg-[#f8fafc] border border-slate-200/80 rounded-xl mb-3.5">
-                <h4 className="text-[13.5px] font-bold text-[#172b4d] mb-2.5">
+              <div className="p-2.5 bg-[#f8fafc] border border-slate-200/80 rounded-lg mb-2.5">
+                <h4 className="text-[13px] font-bold text-[#172b4d] mb-1.5">
                   Cards to be reassigned
                 </h4>
 
-                <div className="space-y-2 text-[13px]">
-                  <div className="flex items-center justify-between py-1">
-                    <div className="flex items-center gap-2.5 text-[#44546f]">
-                      <CardIcon className="w-4 h-4 text-[#626f86]" />
+                <div className="space-y-1.5 text-[12.5px]">
+                  <div className="flex items-center justify-between py-0.5">
+                    <div className="flex items-center gap-2 text-[#44546f]">
+                      <CardIcon className="w-3.5 h-3.5 text-[#626f86]" />
                       <span>Total cards</span>
                     </div>
                     <span className="font-bold text-[#172b4d]">{selectedCardIds.length}</span>
                   </div>
                   <div className="h-px bg-slate-200/70" />
-                  <div className="flex items-center justify-between py-1">
-                    <div className="flex items-center gap-2.5 text-[#44546f]">
-                      <BoardsIcon className="w-4 h-4 text-[#626f86]" />
+                  <div className="flex items-center justify-between py-0.5">
+                    <div className="flex items-center gap-2 text-[#44546f]">
+                      <BoardsIcon className="w-3.5 h-3.5 text-[#626f86]" />
                       <span>Boards</span>
                     </div>
                     <span className="font-bold text-[#172b4d]">{Math.max(1, uniqueBoards.length)}</span>
                   </div>
                   <div className="h-px bg-slate-200/70" />
-                  <div className="flex items-center justify-between py-1">
-                    <div className="flex items-center gap-2.5 text-[#44546f]">
-                      <ListsIcon className="w-4 h-4 text-[#626f86]" />
+                  <div className="flex items-center justify-between py-0.5">
+                    <div className="flex items-center gap-2 text-[#44546f]">
+                      <ListsIcon className="w-3.5 h-3.5 text-[#626f86]" />
                       <span>Lists</span>
                     </div>
                     <span className="font-bold text-[#172b4d]">{Math.max(1, uniqueLists.length)}</span>
@@ -921,16 +925,15 @@ export function MemberHandoverModal({
               </div>
 
               {/* Warning Callout Box */}
-              <div className="p-3.5 bg-[#fff8e6] border border-[#ffecb5] rounded-xl flex items-start gap-3 text-left">
-                <WarningTriangleIcon className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                <div className="text-[12px] leading-relaxed">
+              <div className="p-2.5 bg-[#fff8e6] border border-[#ffecb5] rounded-lg flex items-start gap-2.5 text-left">
+                <WarningTriangleIcon className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <div className="text-[11.5px] leading-relaxed">
                   <div className="font-bold text-[#172b4d] mb-0.5">
                     This will reassign card members
                   </div>
                   <div className="text-[#44546f]">
                     The selected cards will be updated to remove {departingMember?.name}{' '}
-                    and assign {replacementMember?.name} as a member. This action
-                    cannot be undone, but you can review the results after completion.
+                    and assign {replacementMember?.name} as a member.
                   </div>
                 </div>
               </div>
@@ -1412,7 +1415,7 @@ export function MemberHandoverModal({
         </div>
 
         {/* ================= FOOTER CONTROLS ================= */}
-        <div className="px-6 py-4 bg-white flex items-center justify-between">
+        <div className="px-5 py-2.5 bg-white flex items-center justify-between">
           {!isCompleted ? (
             <>
               {/* Left button: Back or Cancel */}
@@ -1422,7 +1425,7 @@ export function MemberHandoverModal({
                     type="button"
                     disabled={isProcessing}
                     onClick={() => setCurrentStep(3)}
-                    className="px-4 py-2 text-[14px] font-semibold text-[#172b4d] bg-[#f4f5f7] hover:bg-[#ebecf0] rounded-md transition-colors cursor-pointer"
+                    className="px-3.5 py-1.5 text-[13.5px] font-semibold text-[#172b4d] bg-[#f4f5f7] hover:bg-[#ebecf0] rounded-md transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -1431,7 +1434,7 @@ export function MemberHandoverModal({
                     type="button"
                     disabled={isProcessing}
                     onClick={() => setCurrentStep((s) => s - 1)}
-                    className="px-4 py-2 text-[14px] font-semibold text-[#172b4d] bg-[#f4f5f7] hover:bg-[#ebecf0] rounded-md transition-colors cursor-pointer"
+                    className="px-3.5 py-1.5 text-[13.5px] font-semibold text-[#172b4d] bg-[#f4f5f7] hover:bg-[#ebecf0] rounded-md transition-colors cursor-pointer"
                   >
                     Back
                   </button>
@@ -1449,7 +1452,7 @@ export function MemberHandoverModal({
                       (currentStep === 3 && departingCards.length === 0)
                     }
                     onClick={() => setCurrentStep((s) => s + 1)}
-                    className="px-6 py-2 text-[14px] font-semibold text-white bg-[#0c66e4] hover:bg-[#0055cc] active:bg-[#09326c] rounded-md shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="px-5 py-1.5 text-[13.5px] font-semibold text-white bg-[#0c66e4] hover:bg-[#0055cc] active:bg-[#09326c] rounded-md shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     Next
                   </button>
@@ -1458,7 +1461,7 @@ export function MemberHandoverModal({
                     type="button"
                     disabled={isProcessing}
                     onClick={handleConfirmHandover}
-                    className="px-6 py-2 text-[14px] font-semibold text-white bg-[#0c66e4] hover:bg-[#0055cc] active:bg-[#09326c] rounded-md shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="px-5 py-1.5 text-[13.5px] font-semibold text-white bg-[#0c66e4] hover:bg-[#0055cc] active:bg-[#09326c] rounded-md shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {isProcessing ? 'Processing...' : 'Confirm handover'}
                   </button>
