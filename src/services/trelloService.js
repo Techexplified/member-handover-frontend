@@ -12,7 +12,7 @@ export function getTrelloCredentials() {
     queryKey ||
     import.meta.env.VITE_TRELLO_API_KEY ||
     localStorage.getItem('trello_api_key') ||
-    '';
+    '46cfbbb2d95db4d024a8584d3056c1c2';
 
   const token =
     queryToken ||
