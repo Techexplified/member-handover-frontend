@@ -48,8 +48,22 @@ export function MemberAvatar({ member, size = 40, className = "" }) {
 
   // Fallback or Initials Avatar
   const initials = member.initials || member.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-  const bg = member.bg || '#dbeafe';
-  const color = member.color || '#1e40af';
+  
+  const PALETTES = [
+    { bg: '#eae6ff', color: '#403294' }, // soft purple
+    { bg: '#dcfff1', color: '#216e4e' }, // soft green
+    { bg: '#ffeceb', color: '#ae2e24' }, // soft coral
+    { bg: '#deebff', color: '#0747a6' }, // soft blue
+    { bg: '#e6fcff', color: '#006644' }, // soft teal
+    { bg: '#fff0b3', color: '#172b4d' }, // soft gold
+  ];
+  let charCode = 0;
+  for (let i = 0; i < (member.name || '').length; i++) {
+    charCode += member.name.charCodeAt(i);
+  }
+  const chosen = PALETTES[charCode % PALETTES.length];
+  const bg = member.bg || chosen.bg;
+  const color = member.color || chosen.color;
 
   return (
     <div

@@ -334,17 +334,15 @@ export function MemberHandoverModal({
 
   if (!isOpen) return null;
 
-  const isInsideTrello = typeof window !== 'undefined' && Boolean(window.TrelloPowerUp);
-
   const cardContent = (
     <div className="handover-modal-card transition-all">
-      {/* ================= MODAL HEADER ================= */}
-      <div className="flex items-center justify-between px-5 pt-3 pb-1.5">
+      {/* ================= MODAL TOP BAR ================= */}
+      <div className="flex items-center justify-between px-6 pt-4 pb-2 bg-white">
         <div className="flex items-center gap-2">
           <UsersIcon className="w-4 h-4" color="#0c66e4" />
-          <h2 className="text-[17px] font-bold tracking-tight text-[#172b4d]">
+          <span className="text-[15px] font-bold tracking-tight text-[#172b4d]">
             Member Handover
-          </h2>
+          </span>
         </div>
         <div className="flex items-center gap-2">
           {hasCredentials ? (
@@ -352,7 +350,7 @@ export function MemberHandoverModal({
               type="button"
               onClick={onOpenConfig}
               title="Trello API connected. Click to edit."
-              className="flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-full transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-full transition-colors cursor-pointer"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               <span>Live Board Sync</span>
@@ -362,202 +360,289 @@ export function MemberHandoverModal({
               type="button"
               onClick={onOpenConfig}
               title="Click to enter Trello API Key & Token for live updates"
-              className="flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-full transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-full transition-colors cursor-pointer"
             >
               <span>🔑 Connect API Key</span>
             </button>
           )}
-          {!isInsideTrello && (
-            <button
-              onClick={handleCloseDialog}
-              aria-label="Close dialog"
-              className="p-1 rounded-md text-[#626f86] hover:text-[#172b4d] hover:bg-slate-100 transition-colors focus:outline-none cursor-pointer"
-            >
-              <CloseIcon className="w-4 h-4" />
-            </button>
-          )}
+          <button
+            onClick={handleCloseDialog}
+            aria-label="Close dialog"
+            className="p-1 rounded-md text-[#626f86] hover:text-[#172b4d] hover:bg-slate-100 transition-colors focus:outline-none cursor-pointer"
+          >
+            <CloseIcon className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-        {/* ================= STEPPER PROGRESS BAR ================= */}
-        <div className="px-5 pt-1 pb-2 bg-white">
-          <div className="relative flex items-center justify-between">
-            {/* Background line connecting all steps */}
+      {/* ================= STEPPER PROGRESS BAR ================= */}
+      <div style={{ padding: '10px 24px 16px 24px', backgroundColor: '#ffffff', width: '100%', boxSizing: 'border-box' }}>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {/* Background Gray Connecting Line */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '14px',
+              left: '20px',
+              right: '20px',
+              height: '2px',
+              backgroundColor: '#dfe1e6',
+              zIndex: 0,
+            }}
+          >
+            {/* Active Blue Progress Line */}
             <div
-              className="absolute top-[14px] left-[18px] right-[18px] h-[2px] bg-[#dfe1e6] -z-0"
-              style={{ transform: 'translateY(-50%)' }}
-            >
-              {/* Active Blue Line Progress */}
-              <div
-                className="h-full bg-[#0c66e4] transition-all duration-300"
-                style={{
-                  width:
-                    currentStep === 1
-                      ? '0%'
-                      : currentStep === 2
-                      ? '33.3%'
-                      : currentStep === 3
-                      ? '66.6%'
-                      : '100%',
-                }}
-              />
-            </div>
-
-            {/* Step 1: Select member */}
-            <button
-              type="button"
-              onClick={() => !isProcessing && !isCompleted && setCurrentStep(1)}
-              className="group z-10 flex flex-col items-center focus:outline-none cursor-pointer"
-            >
-              <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                  currentStep > 1 || isCompleted
-                    ? 'bg-[#0c66e4] text-white'
-                    : currentStep === 1
-                    ? 'bg-[#0c66e4] text-white shadow-xs'
-                    : 'bg-[#dfe1e6] text-[#626f86]'
-                }`}
-              >
-                {currentStep > 1 || isCompleted ? (
-                  <CheckIcon className="w-3.5 h-3.5" color="#ffffff" />
-                ) : (
-                  '1'
-                )}
-              </div>
-              <span
-                className={`mt-1.5 text-[11.5px] leading-tight ${
-                  currentStep === 1 && !isCompleted
-                    ? 'font-bold text-[#172b4d]'
-                    : 'text-[#626f86]'
-                }`}
-              >
-                Select member
-              </span>
-            </button>
-
-            {/* Step 2: Choose replacement */}
-            <button
-              type="button"
-              onClick={() => !isProcessing && !isCompleted && currentStep > 2 && setCurrentStep(2)}
-              className="group z-10 flex flex-col items-center focus:outline-none cursor-pointer"
-            >
-              <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                  currentStep > 2 || isCompleted
-                    ? 'bg-[#0c66e4] text-white'
+              style={{
+                height: '100%',
+                backgroundColor: '#0c66e4',
+                transition: 'width 0.3s ease',
+                width:
+                  currentStep === 1
+                    ? '0%'
                     : currentStep === 2
-                    ? 'bg-[#0c66e4] text-white shadow-xs'
-                    : 'bg-[#dfe1e6] text-[#626f86]'
-                }`}
-              >
-                {currentStep > 2 || isCompleted ? (
-                  <CheckIcon className="w-3.5 h-3.5" color="#ffffff" />
-                ) : (
-                  '2'
-                )}
-              </div>
-              <span
-                className={`mt-1.5 text-[11.5px] leading-tight ${
-                  currentStep === 2 && !isCompleted
-                    ? 'font-bold text-[#172b4d]'
-                    : 'text-[#626f86]'
-                }`}
-              >
-                Choose replacement
-              </span>
-            </button>
-
-            {/* Step 3: Review cards */}
-            <button
-              type="button"
-              onClick={() => !isProcessing && !isCompleted && currentStep > 3 && setCurrentStep(3)}
-              className="group z-10 flex flex-col items-center focus:outline-none cursor-pointer"
-            >
-              <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                  currentStep > 3 || isCompleted
-                    ? 'bg-[#0c66e4] text-white'
+                    ? '33.3%'
                     : currentStep === 3
-                    ? 'bg-[#0c66e4] text-white shadow-xs'
-                    : 'bg-[#dfe1e6] text-[#626f86]'
-                }`}
-              >
-                {currentStep > 3 || isCompleted ? (
-                  <CheckIcon className="w-3.5 h-3.5" color="#ffffff" />
-                ) : (
-                  '3'
-                )}
-              </div>
-              <span
-                className={`mt-1.5 text-[11.5px] leading-tight ${
-                  currentStep === 3 && !isCompleted
-                    ? 'font-bold text-[#172b4d]'
-                    : 'text-[#626f86]'
-                }`}
-              >
-                Review cards
-              </span>
-            </button>
-
-            {/* Step 4: Reassign */}
-            <button
-              type="button"
-              className="group z-10 flex flex-col items-center focus:outline-none cursor-default"
-            >
-              <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                  currentStep === 4 || isCompleted
-                    ? 'bg-[#0c66e4] text-white shadow-xs'
-                    : 'bg-[#dfe1e6] text-[#626f86]'
-                }`}
-              >
-                {currentStep === 4 || isCompleted ? (
-                  <CheckIcon className="w-3.5 h-3.5" color="#ffffff" />
-                ) : (
-                  '4'
-                )}
-              </div>
-              <span
-                className={`mt-1.5 text-[11.5px] leading-tight ${
-                  currentStep === 4 || isCompleted
-                    ? 'font-bold text-[#172b4d]'
-                    : 'text-[#626f86]'
-                }`}
-              >
-                Reassign
-              </span>
-            </button>
+                    ? '66.6%'
+                    : isCompleted
+                    ? '100%'
+                    : '85%',
+              }}
+            />
           </div>
+
+          {/* Step 1: Select member */}
+          <button
+            type="button"
+            onClick={() => !isProcessing && !isCompleted && setCurrentStep(1)}
+            style={{
+              zIndex: 1,
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
+            <div
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '12px',
+                fontWeight: 700,
+                backgroundColor: currentStep >= 1 ? '#0c66e4' : '#dfe1e6',
+                color: currentStep >= 1 ? '#ffffff' : '#626f86',
+                boxShadow: '0 0 0 3px #ffffff',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {currentStep > 1 || isCompleted ? (
+                <CheckIcon className="w-3.5 h-3.5" color="#ffffff" strokeWidth={3} />
+              ) : (
+                '1'
+              )}
+            </div>
+            <span
+              style={{
+                marginTop: '6px',
+                fontSize: '11.5px',
+                lineHeight: '1.2',
+                fontWeight: currentStep === 1 && !isCompleted ? 700 : 500,
+                color: currentStep === 1 && !isCompleted ? '#172b4d' : '#626f86',
+              }}
+            >
+              Select member
+            </span>
+          </button>
+
+          {/* Step 2: Choose replacement */}
+          <button
+            type="button"
+            onClick={() => !isProcessing && !isCompleted && currentStep > 2 && setCurrentStep(2)}
+            style={{
+              zIndex: 1,
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              background: 'none',
+              border: 'none',
+              cursor: currentStep > 1 ? 'pointer' : 'default',
+              padding: 0,
+            }}
+          >
+            <div
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '12px',
+                fontWeight: 700,
+                backgroundColor: currentStep >= 2 ? '#0c66e4' : '#dfe1e6',
+                color: currentStep >= 2 ? '#ffffff' : '#626f86',
+                boxShadow: '0 0 0 3px #ffffff',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {currentStep > 2 || isCompleted ? (
+                <CheckIcon className="w-3.5 h-3.5" color="#ffffff" strokeWidth={3} />
+              ) : (
+                '2'
+              )}
+            </div>
+            <span
+              style={{
+                marginTop: '6px',
+                fontSize: '11.5px',
+                lineHeight: '1.2',
+                fontWeight: currentStep === 2 && !isCompleted ? 700 : 500,
+                color: currentStep === 2 && !isCompleted ? '#172b4d' : '#626f86',
+              }}
+            >
+              Choose replacement
+            </span>
+          </button>
+
+          {/* Step 3: Review cards */}
+          <button
+            type="button"
+            onClick={() => !isProcessing && !isCompleted && currentStep > 3 && setCurrentStep(3)}
+            style={{
+              zIndex: 1,
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              background: 'none',
+              border: 'none',
+              cursor: currentStep > 2 ? 'pointer' : 'default',
+              padding: 0,
+            }}
+          >
+            <div
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '12px',
+                fontWeight: 700,
+                backgroundColor: currentStep >= 3 ? '#0c66e4' : '#dfe1e6',
+                color: currentStep >= 3 ? '#ffffff' : '#626f86',
+                boxShadow: '0 0 0 3px #ffffff',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {currentStep > 3 || isCompleted ? (
+                <CheckIcon className="w-3.5 h-3.5" color="#ffffff" strokeWidth={3} />
+              ) : (
+                '3'
+              )}
+            </div>
+            <span
+              style={{
+                marginTop: '6px',
+                fontSize: '11.5px',
+                lineHeight: '1.2',
+                fontWeight: currentStep === 3 && !isCompleted ? 700 : 500,
+                color: currentStep === 3 && !isCompleted ? '#172b4d' : '#626f86',
+              }}
+            >
+              Review cards
+            </span>
+          </button>
+
+          {/* Step 4: Reassign */}
+          <button
+            type="button"
+            style={{
+              zIndex: 1,
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              background: 'none',
+              border: 'none',
+              cursor: 'default',
+              padding: 0,
+            }}
+          >
+            <div
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '12px',
+                fontWeight: 700,
+                backgroundColor: currentStep >= 4 ? '#0c66e4' : '#dfe1e6',
+                color: currentStep >= 4 ? '#ffffff' : '#626f86',
+                boxShadow: '0 0 0 3px #ffffff',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {isCompleted ? (
+                <CheckIcon className="w-3.5 h-3.5" color="#ffffff" strokeWidth={3} />
+              ) : (
+                '4'
+              )}
+            </div>
+            <span
+              style={{
+                marginTop: '6px',
+                fontSize: '11.5px',
+                lineHeight: '1.2',
+                fontWeight: currentStep === 4 && !isCompleted ? 700 : 500,
+                color: currentStep === 4 && !isCompleted ? '#172b4d' : '#626f86',
+              }}
+            >
+              Reassign
+            </span>
+          </button>
         </div>
+      </div>
 
         {/* ================= MODAL BODY ================= */}
-        <div className="px-5 py-3 flex-1 overflow-y-auto max-h-[calc(100vh-115px)]">
+        <div className="px-6 sm:px-8 py-5 flex-1 overflow-y-auto max-h-[500px]">
           {/* ========================================================================= */}
           {/* SCREEN 1: SELECT DEPARTING MEMBER                                         */}
           {/* ========================================================================= */}
           {currentStep === 1 && !isCompleted && (
             <div>
-              <div className="mb-2.5">
-                <h3 className="text-[18px] font-bold text-[#172b4d] tracking-tight mb-0.5">
+              <div className="mb-4">
+                <h3 className="text-[22px] font-bold text-[#172b4d] tracking-tight mb-1">
                   Select departing member
                 </h3>
-                <p className="text-[12.5px] text-[#44546f] leading-snug">
+                <p className="text-[13.5px] text-[#44546f] leading-normal">
                   Choose the team member whose card assignments you want to
                   reassign across your boards.
                 </p>
               </div>
 
               {/* Step 1 Departing Member Search Input */}
-              <div className="relative mb-2.5">
-                <div className="search-icon-container">
-                  <SearchIcon size={15} color="#626f86" />
+              <div className="relative mb-3.5">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <SearchIcon className="w-4 h-4" color="#626f86" />
                 </div>
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search for a member..."
-                  className="search-input-field"
+                  className="w-full pl-9 pr-3.5 py-2 text-[14px] bg-white border border-[#dfe1e6] rounded-md text-[#172b4d] placeholder-[#626f86] focus:outline-none focus:border-[#0c66e4] focus:ring-2 focus:ring-blue-100 transition-all"
                 />
               </div>
 
@@ -572,7 +657,7 @@ export function MemberHandoverModal({
                         setSelectedDepartingId(member.id);
                         if (onSelectDepartingMember) onSelectDepartingMember(member.id);
                       }}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all ${
+                      className={`flex items-center gap-3.5 px-3.5 py-3 rounded-lg cursor-pointer transition-all ${
                         isSelected
                           ? 'bg-[#deebff]'
                           : 'bg-white hover:bg-[#f4f5f7]'
@@ -586,14 +671,14 @@ export function MemberHandoverModal({
                       </div>
 
                       {/* Avatar */}
-                      <MemberAvatar member={member} size={34} />
+                      <MemberAvatar member={member} size={38} />
 
                       {/* Name & Email */}
                       <div className="flex-1 min-w-0">
-                        <span className="text-[13.5px] font-semibold text-[#172b4d] truncate block">
+                        <span className="text-[14px] font-semibold text-[#172b4d] truncate block">
                           {member.name}
                         </span>
-                        <div className="text-[12px] text-[#626f86] truncate">
+                        <div className="text-[12.5px] text-[#626f86] truncate">
                           {member.email}
                         </div>
                       </div>
@@ -609,11 +694,11 @@ export function MemberHandoverModal({
           {/* ========================================================================= */}
           {currentStep === 2 && !isCompleted && (
             <div>
-              <div className="mb-2.5">
-                <h3 className="text-[18px] font-bold text-[#172b4d] tracking-tight mb-0.5">
+              <div className="mb-4">
+                <h3 className="text-[22px] font-bold text-[#172b4d] tracking-tight mb-1">
                   Choose replacement member
                 </h3>
-                <p className="text-[12.5px] text-[#44546f] leading-snug">
+                <p className="text-[13.5px] text-[#44546f] leading-normal">
                   Select the team member who will take ownership of the cards from{' '}
                   <span className="font-semibold text-[#172b4d]">
                     {departingMember?.name}
@@ -623,16 +708,16 @@ export function MemberHandoverModal({
               </div>
 
               {/* Step 2 Search input */}
-              <div className="relative mb-2.5">
-                <div className="search-icon-container">
-                  <SearchIcon size={15} color="#626f86" />
+              <div className="relative mb-3.5">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <SearchIcon className="w-4 h-4" color="#626f86" />
                 </div>
                 <input
                   type="text"
                   value={replacementSearchQuery}
                   onChange={(e) => setReplacementSearchQuery(e.target.value)}
                   placeholder="Search for a member..."
-                  className="search-input-field"
+                  className="w-full pl-9 pr-3.5 py-2 text-[14px] bg-white border border-[#dfe1e6] rounded-md text-[#172b4d] placeholder-[#626f86] focus:outline-none focus:border-[#0c66e4] focus:ring-2 focus:ring-blue-100 transition-all"
                 />
               </div>
 
@@ -644,7 +729,7 @@ export function MemberHandoverModal({
                     <div
                       key={member.id}
                       onClick={() => setSelectedReplacementId(member.id)}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all ${
+                      className={`flex items-center gap-3.5 px-3.5 py-3 rounded-lg cursor-pointer transition-all ${
                         isSelected
                           ? 'bg-[#deebff]'
                           : 'bg-white hover:bg-[#f4f5f7]'
@@ -658,14 +743,14 @@ export function MemberHandoverModal({
                       </div>
 
                       {/* Avatar */}
-                      <MemberAvatar member={member} size={34} />
+                      <MemberAvatar member={member} size={38} />
 
                       {/* Name & Email */}
                       <div className="flex-1 min-w-0">
-                        <span className="text-[13.5px] font-semibold text-[#172b4d] truncate block">
+                        <span className="text-[14px] font-semibold text-[#172b4d] truncate block">
                           {member.name}
                         </span>
-                        <div className="text-[12px] text-[#626f86] truncate">
+                        <div className="text-[12.5px] text-[#626f86] truncate">
                           {member.email}
                         </div>
                       </div>
@@ -706,11 +791,11 @@ export function MemberHandoverModal({
               ) : (
                 /* Review table */
                 <div>
-                  <div className="mb-2">
-                    <h3 className="text-[18px] font-bold text-[#172b4d] tracking-tight mb-0.5">
+                  <div className="mb-3">
+                    <h3 className="text-[22px] font-bold text-[#172b4d] tracking-tight mb-1">
                       Review cards to reassign
                     </h3>
-                    <p className="text-[12.5px] text-[#44546f] leading-snug">
+                    <p className="text-[13.5px] text-[#44546f] leading-normal">
                       We found {departingCards.length} cards assigned to{' '}
                       {departingMember?.name} across {uniqueBoards.length} boards. Review
                       the list below before making changes.
@@ -718,12 +803,12 @@ export function MemberHandoverModal({
                   </div>
 
                   {/* Mini From -> To Bar */}
-                  <div className="p-2.5 bg-[#edf5ff] border border-blue-100/80 rounded-lg mb-2.5 flex items-center justify-between">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-[11px] text-[#626f86] font-medium">From</span>
-                      <MemberAvatar member={departingMember} size={28} />
+                  <div className="p-3 bg-[#edf5ff] border border-blue-100/80 rounded-xl mb-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-[11.5px] text-[#626f86] font-medium">From</span>
+                      <MemberAvatar member={departingMember} size={30} />
                       <div className="min-w-0">
-                        <div className="text-[12.5px] font-bold text-[#172b4d] truncate">
+                        <div className="text-[13px] font-bold text-[#172b4d] truncate">
                           {departingMember?.name}
                         </div>
                         <div className="text-[11px] text-[#626f86] truncate">
@@ -731,14 +816,14 @@ export function MemberHandoverModal({
                         </div>
                       </div>
                     </div>
-                    <div className="px-1.5 text-slate-400">
-                      <ArrowRightIcon className="w-3.5 h-3.5" />
+                    <div className="px-2 text-slate-400">
+                      <ArrowRightIcon className="w-4 h-4" />
                     </div>
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-[11px] text-[#626f86] font-medium">To</span>
-                      <MemberAvatar member={replacementMember} size={28} />
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-[11.5px] text-[#626f86] font-medium">To</span>
+                      <MemberAvatar member={replacementMember} size={30} />
                       <div className="min-w-0">
-                        <div className="text-[12.5px] font-bold text-[#172b4d] truncate">
+                        <div className="text-[13px] font-bold text-[#172b4d] truncate">
                           {replacementMember?.name}
                         </div>
                         <div className="text-[11px] text-[#626f86] truncate">
@@ -749,16 +834,16 @@ export function MemberHandoverModal({
                   </div>
 
                   {/* Search bar */}
-                  <div className="relative" style={{ marginBottom: '14px' }}>
-                    <div className="search-icon-container">
-                      <SearchIcon size={15} color="#626f86" />
+                  <div className="relative mb-2.5">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <SearchIcon className="w-3.5 h-3.5" color="#626f86" />
                     </div>
                     <input
                       type="text"
                       value={cardSearchQuery}
                       onChange={(e) => setCardSearchQuery(e.target.value)}
                       placeholder="Search cards or boards..."
-                      className="search-input-field"
+                      className="w-full pl-8 pr-3 py-1.5 text-[13px] bg-white border border-[#dfe1e6] rounded-md text-[#172b4d] placeholder-[#626f86] focus:outline-none focus:border-[#0c66e4]"
                     />
                   </div>
 
@@ -782,7 +867,7 @@ export function MemberHandoverModal({
                       <div>Current assignee</div>
                     </div>
 
-                    <div className="max-h-[220px] overflow-y-auto">
+                    <div className="max-h-[300px] overflow-y-auto">
                       {filteredCards.map((card) => {
                         const isChecked = selectedCardIds.includes(card.id);
                         return (
@@ -851,22 +936,22 @@ export function MemberHandoverModal({
           {/* ========================================================================= */}
           {currentStep === 4 && !isCompleted && (
             <div>
-              <div className="mb-2">
-                <h3 className="text-[18px] font-bold text-[#172b4d] tracking-tight mb-0.5">
+              <div className="mb-4">
+                <h3 className="text-[22px] font-bold text-[#172b4d] tracking-tight mb-1">
                   Confirm handover
                 </h3>
-                <p className="text-[12.5px] text-[#44546f] leading-snug">
+                <p className="text-[13.5px] text-[#44546f] leading-normal">
                   Please review the details below before reassigning the cards.
                 </p>
               </div>
 
               {/* From -> To Bar */}
-              <div className="p-2.5 bg-[#edf5ff] border border-blue-100/80 rounded-lg mb-2.5 flex items-center justify-between">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-[11px] text-[#626f86] font-medium">From</span>
-                  <MemberAvatar member={departingMember} size={28} />
+              <div className="p-3 bg-[#edf5ff] border border-blue-100/80 rounded-xl mb-3.5 flex items-center justify-between">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="text-[11.5px] text-[#626f86] font-medium">From</span>
+                  <MemberAvatar member={departingMember} size={32} />
                   <div className="min-w-0">
-                    <div className="text-[12.5px] font-bold text-[#172b4d] truncate">
+                    <div className="text-[13px] font-bold text-[#172b4d] truncate">
                       {departingMember?.name}
                     </div>
                     <div className="text-[11px] text-[#626f86] truncate">
@@ -874,14 +959,14 @@ export function MemberHandoverModal({
                     </div>
                   </div>
                 </div>
-                <div className="px-1.5 text-slate-400">
-                  <ArrowRightIcon className="w-3.5 h-3.5" />
+                <div className="px-2 text-slate-400">
+                  <ArrowRightIcon className="w-4 h-4" />
                 </div>
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-[11px] text-[#626f86] font-medium">To</span>
-                  <MemberAvatar member={replacementMember} size={28} />
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="text-[11.5px] text-[#626f86] font-medium">To</span>
+                  <MemberAvatar member={replacementMember} size={32} />
                   <div className="min-w-0">
-                    <div className="text-[12.5px] font-bold text-[#172b4d] truncate">
+                    <div className="text-[13px] font-bold text-[#172b4d] truncate">
                       {replacementMember?.name}
                     </div>
                     <div className="text-[11px] text-[#626f86] truncate">
@@ -892,48 +977,48 @@ export function MemberHandoverModal({
               </div>
 
               {/* Cards to be reassigned stats box */}
-              <div className="p-2.5 bg-[#f8fafc] border border-slate-200/80 rounded-lg mb-2.5">
-                <h4 className="text-[13px] font-bold text-[#172b4d] mb-1.5">
+              <div style={{ backgroundColor: '#f8fafc', border: '1px solid #dfe1e6', borderRadius: '10px', padding: '12px 14px', marginBottom: '14px' }}>
+                <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#172b4d', marginBottom: '10px' }}>
                   Cards to be reassigned
                 </h4>
 
-                <div className="space-y-1.5 text-[12.5px]">
-                  <div className="flex items-center justify-between py-0.5">
-                    <div className="flex items-center gap-2 text-[#44546f]">
-                      <CardIcon className="w-3.5 h-3.5 text-[#626f86]" />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#44546f' }}>
+                      <CardIcon style={{ width: '16px', height: '16px', flexShrink: 0 }} color="#626f86" />
                       <span>Total cards</span>
                     </div>
-                    <span className="font-bold text-[#172b4d]">{selectedCardIds.length}</span>
+                    <span style={{ fontWeight: 700, color: '#172b4d' }}>{selectedCardIds.length}</span>
                   </div>
-                  <div className="h-px bg-slate-200/70" />
-                  <div className="flex items-center justify-between py-0.5">
-                    <div className="flex items-center gap-2 text-[#44546f]">
-                      <BoardsIcon className="w-3.5 h-3.5 text-[#626f86]" />
+                  <div style={{ height: '1px', backgroundColor: '#e2e8f0' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#44546f' }}>
+                      <BoardsIcon style={{ width: '16px', height: '16px', flexShrink: 0 }} color="#626f86" />
                       <span>Boards</span>
                     </div>
-                    <span className="font-bold text-[#172b4d]">{Math.max(1, uniqueBoards.length)}</span>
+                    <span style={{ fontWeight: 700, color: '#172b4d' }}>{Math.max(1, uniqueBoards.length)}</span>
                   </div>
-                  <div className="h-px bg-slate-200/70" />
-                  <div className="flex items-center justify-between py-0.5">
-                    <div className="flex items-center gap-2 text-[#44546f]">
-                      <ListsIcon className="w-3.5 h-3.5 text-[#626f86]" />
+                  <div style={{ height: '1px', backgroundColor: '#e2e8f0' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#44546f' }}>
+                      <ListsIcon style={{ width: '16px', height: '16px', flexShrink: 0 }} color="#626f86" />
                       <span>Lists</span>
                     </div>
-                    <span className="font-bold text-[#172b4d]">{Math.max(1, uniqueLists.length)}</span>
+                    <span style={{ fontWeight: 700, color: '#172b4d' }}>{Math.max(1, uniqueLists.length)}</span>
                   </div>
                 </div>
               </div>
 
               {/* Warning Callout Box */}
-              <div className="p-2.5 bg-[#fff8e6] border border-[#ffecb5] rounded-lg flex items-start gap-2.5 text-left">
-                <WarningTriangleIcon className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                <div className="text-[11.5px] leading-relaxed">
-                  <div className="font-bold text-[#172b4d] mb-0.5">
+              <div style={{ backgroundColor: '#fff8e6', border: '1px solid #ffecb5', borderRadius: '10px', padding: '12px 14px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                <WarningTriangleIcon style={{ width: '18px', height: '18px', flexShrink: 0, marginTop: '2px' }} color="#d97706" />
+                <div style={{ fontSize: '12px', lineHeight: '1.45' }}>
+                  <div style={{ fontWeight: 700, color: '#172b4d', marginBottom: '2px' }}>
                     This will reassign card members
                   </div>
-                  <div className="text-[#44546f]">
+                  <div style={{ color: '#44546f' }}>
                     The selected cards will be updated to remove {departingMember?.name}{' '}
-                    and assign {replacementMember?.name} as a member.
+                    and assign {replacementMember?.name} as a member. This action cannot be undone.
                   </div>
                 </div>
               </div>
@@ -1415,7 +1500,7 @@ export function MemberHandoverModal({
         </div>
 
         {/* ================= FOOTER CONTROLS ================= */}
-        <div className="px-5 py-2.5 bg-white flex items-center justify-between">
+        <div className="px-6 py-4 bg-white flex items-center justify-between">
           {!isCompleted ? (
             <>
               {/* Left button: Back or Cancel */}
@@ -1425,7 +1510,7 @@ export function MemberHandoverModal({
                     type="button"
                     disabled={isProcessing}
                     onClick={() => setCurrentStep(3)}
-                    className="px-3.5 py-1.5 text-[13.5px] font-semibold text-[#172b4d] bg-[#f4f5f7] hover:bg-[#ebecf0] rounded-md transition-colors cursor-pointer"
+                    className="px-4 py-2 text-[14px] font-semibold text-[#172b4d] bg-[#f4f5f7] hover:bg-[#ebecf0] rounded-md transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -1434,7 +1519,7 @@ export function MemberHandoverModal({
                     type="button"
                     disabled={isProcessing}
                     onClick={() => setCurrentStep((s) => s - 1)}
-                    className="px-3.5 py-1.5 text-[13.5px] font-semibold text-[#172b4d] bg-[#f4f5f7] hover:bg-[#ebecf0] rounded-md transition-colors cursor-pointer"
+                    className="px-4 py-2 text-[14px] font-semibold text-[#172b4d] bg-[#f4f5f7] hover:bg-[#ebecf0] rounded-md transition-colors cursor-pointer"
                   >
                     Back
                   </button>
@@ -1452,7 +1537,7 @@ export function MemberHandoverModal({
                       (currentStep === 3 && departingCards.length === 0)
                     }
                     onClick={() => setCurrentStep((s) => s + 1)}
-                    className="px-5 py-1.5 text-[13.5px] font-semibold text-white bg-[#0c66e4] hover:bg-[#0055cc] active:bg-[#09326c] rounded-md shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="px-6 py-2 text-[14px] font-semibold text-white bg-[#0c66e4] hover:bg-[#0055cc] active:bg-[#09326c] rounded-md shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     Next
                   </button>
@@ -1461,7 +1546,7 @@ export function MemberHandoverModal({
                     type="button"
                     disabled={isProcessing}
                     onClick={handleConfirmHandover}
-                    className="px-5 py-1.5 text-[13.5px] font-semibold text-white bg-[#0c66e4] hover:bg-[#0055cc] active:bg-[#09326c] rounded-md shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="px-6 py-2 text-[14px] font-semibold text-white bg-[#0c66e4] hover:bg-[#0055cc] active:bg-[#09326c] rounded-md shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {isProcessing ? 'Processing...' : 'Confirm handover'}
                   </button>

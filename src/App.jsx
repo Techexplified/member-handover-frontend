@@ -139,19 +139,21 @@ export default function App() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-white flex flex-col font-sans">
-      <MemberHandoverModal
-        isOpen={true}
-        isInline={true}
-        onClose={handleCloseModal}
-        members={members}
-        cards={cards}
-        onCompleteHandover={handleCompleteHandover}
-        onSelectDepartingMember={handleSelectDepartingMember}
-        isLiveConnected={isLiveConnected}
-        hasCredentials={hasCredentials}
-        onOpenConfig={() => setIsConfigOpen(true)}
-      />
+    <div className="w-full min-h-screen bg-white flex justify-center font-sans">
+      <div className="w-full max-w-[480px] flex flex-col bg-white">
+        <MemberHandoverModal
+          isOpen={true}
+          isInline={true}
+          onClose={handleCloseModal}
+          members={members}
+          cards={cards}
+          onCompleteHandover={handleCompleteHandover}
+          onSelectDepartingMember={handleSelectDepartingMember}
+          isLiveConnected={isLiveConnected}
+          hasCredentials={hasCredentials}
+          onOpenConfig={() => setIsConfigOpen(true)}
+        />
+      </div>
 
       <TrelloConfigModal
         isOpen={isConfigOpen}
