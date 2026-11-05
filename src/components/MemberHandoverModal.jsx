@@ -527,7 +527,7 @@ export function MemberHandoverModal({
         </div>
 
         {/* ================= MODAL BODY ================= */}
-        <div className="px-6 sm:px-8 py-5 flex-1 overflow-y-auto max-h-[calc(100vh-140px)]">
+        <div className="px-6 sm:px-8 py-5 flex-1 overflow-y-auto max-h-[500px]">
           {/* ========================================================================= */}
           {/* SCREEN 1: SELECT DEPARTING MEMBER                                         */}
           {/* ========================================================================= */}
@@ -575,17 +575,9 @@ export function MemberHandoverModal({
                       }`}
                     >
                       {/* Radio button */}
-                      <div className="flex items-center justify-center flex-shrink-0">
-                        <div
-                          className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center transition-all ${
-                            isSelected
-                              ? 'border-[#0c66e4] bg-[#0c66e4]'
-                              : 'border-[#8590a2] bg-white'
-                          }`}
-                        >
-                          {isSelected && (
-                            <div className="w-[7px] h-[7px] rounded-full bg-white" />
-                          )}
+                      <div className="radio-button-container">
+                        <div className={`custom-radio ${isSelected ? 'selected' : ''}`}>
+                          {isSelected && <span className="custom-radio-dot" />}
                         </div>
                       </div>
 
@@ -655,17 +647,9 @@ export function MemberHandoverModal({
                       }`}
                     >
                       {/* Radio button */}
-                      <div className="flex items-center justify-center flex-shrink-0">
-                        <div
-                          className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center transition-all ${
-                            isSelected
-                              ? 'border-[#0c66e4] bg-[#0c66e4]'
-                              : 'border-[#8590a2] bg-white'
-                          }`}
-                        >
-                          {isSelected && (
-                            <div className="w-[7px] h-[7px] rounded-full bg-white" />
-                          )}
+                      <div className="radio-button-container">
+                        <div className={`custom-radio ${isSelected ? 'selected' : ''}`}>
+                          {isSelected && <span className="custom-radio-dot" />}
                         </div>
                       </div>
 
