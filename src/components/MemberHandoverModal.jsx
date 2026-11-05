@@ -337,7 +337,7 @@ export function MemberHandoverModal({
   const cardContent = (
     <div className="handover-modal-card transition-all">
       {/* ================= MODAL HEADER ================= */}
-      <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-100">
+      <div className="flex items-center justify-between px-6 pt-5 pb-3">
         <div className="flex items-center gap-2.5">
           <UsersIcon className="w-5 h-5" color="#0c66e4" />
           <h2 className="text-[19px] font-bold tracking-tight text-[#172b4d]">
@@ -376,7 +376,7 @@ export function MemberHandoverModal({
       </div>
 
         {/* ================= STEPPER PROGRESS BAR ================= */}
-        <div className="px-6 pt-4 pb-3 border-b border-slate-100 bg-white">
+        <div className="px-6 pt-2 pb-3 bg-white">
           <div className="relative flex items-center justify-between">
             {/* Background line connecting all steps */}
             <div
@@ -571,7 +571,7 @@ export function MemberHandoverModal({
                       className={`flex items-center gap-3.5 px-3.5 py-3 rounded-lg cursor-pointer transition-all ${
                         isSelected
                           ? 'bg-[#deebff]'
-                          : 'bg-white hover:bg-[#f7f8f9] border-b border-[#f1f2f4]'
+                          : 'bg-white hover:bg-[#f4f5f7]'
                       }`}
                     >
                       {/* Radio button */}
@@ -643,7 +643,7 @@ export function MemberHandoverModal({
                       className={`flex items-center gap-3.5 px-3.5 py-3 rounded-lg cursor-pointer transition-all ${
                         isSelected
                           ? 'bg-[#deebff]'
-                          : 'bg-white hover:bg-[#f7f8f9] border-b border-[#f1f2f4]'
+                          : 'bg-white hover:bg-[#f4f5f7]'
                       }`}
                     >
                       {/* Radio button */}
@@ -759,8 +759,8 @@ export function MemberHandoverModal({
                   </div>
 
                   {/* Table */}
-                  <div className="border border-slate-200 rounded-lg overflow-hidden bg-white mb-2">
-                    <div className="grid grid-cols-[36px_2.5fr_1.5fr_1.5fr_1.5fr] items-center px-3 py-2.5 bg-white border-b border-[#dfe1e6] text-[12px] font-bold text-[#626f86]">
+                  <div className="border border-[#dfe1e6] rounded-lg overflow-hidden bg-white mb-2">
+                    <div className="card-table-grid card-table-header">
                       <div className="flex items-center justify-center">
                         <input
                           type="checkbox"
@@ -769,7 +769,7 @@ export function MemberHandoverModal({
                             departingCards.length > 0
                           }
                           onChange={handleToggleAll}
-                          className="w-4 h-4 rounded text-[#0c66e4] focus:ring-0 cursor-pointer"
+                          className="custom-checkbox"
                         />
                       </div>
                       <div>Card</div>
@@ -778,17 +778,15 @@ export function MemberHandoverModal({
                       <div>Current assignee</div>
                     </div>
 
-                    <div className="max-h-[360px] overflow-y-auto divide-y divide-slate-100 text-[13px]">
+                    <div className="max-h-[300px] overflow-y-auto">
                       {filteredCards.map((card) => {
                         const isChecked = selectedCardIds.includes(card.id);
                         return (
                           <div
                             key={card.id}
                             onClick={() => handleToggleCard(card.id)}
-                            className={`grid grid-cols-[36px_2.5fr_1.5fr_1.5fr_1.5fr] items-center px-3 py-2.5 cursor-pointer transition-colors ${
-                              isChecked
-                                ? 'bg-white hover:bg-slate-50'
-                                : 'bg-slate-50/50 text-slate-400 opacity-60'
+                            className={`card-table-grid card-table-row ${
+                              !isChecked ? 'unselected' : ''
                             }`}
                           >
                             <div className="flex items-center justify-center">
@@ -797,7 +795,7 @@ export function MemberHandoverModal({
                                 checked={isChecked}
                                 onChange={() => handleToggleCard(card.id)}
                                 onClick={(e) => e.stopPropagation()}
-                                className="w-4 h-4 rounded text-[#0c66e4] focus:ring-0 cursor-pointer"
+                                className="custom-checkbox"
                               />
                             </div>
                             <div className="font-semibold text-[#172b4d] truncate pr-2">
@@ -1414,7 +1412,7 @@ export function MemberHandoverModal({
         </div>
 
         {/* ================= FOOTER CONTROLS ================= */}
-        <div className="px-6 py-4 bg-white border-t border-slate-100 flex items-center justify-between">
+        <div className="px-6 py-4 bg-white flex items-center justify-between">
           {!isCompleted ? (
             <>
               {/* Left button: Back or Cancel */}
